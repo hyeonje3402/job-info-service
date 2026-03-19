@@ -1,0 +1,26 @@
+# Java
+target/
+*.class
+*.jar
+*.war
+*.ear
+.gradle/
+build/
+
+# Node.js
+node_modules/
+dist/
+build/
+*.log
+.env*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+*.swp
+*.tmp
+.DS_Store
