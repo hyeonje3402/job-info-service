@@ -37,12 +37,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 Implement `Admin` entity and repository in `backend/src/main/java/com/hiresync/models/Admin.java`
-- [ ] T007 [P] Create `AdminRepository` in `backend/src/main/java/com/hiresync/repositories/AdminRepository.java`
-- [ ] T008 [P] Write unit tests for JWT token generation and validation in `backend/src/test/java/com/hiresync/security/JwtTokenTest.java`
-- [ ] T009 Implement JWT security configuration in `backend/src/main/java/com/hiresync/security/JwtUtils.java`
-- [ ] T010 [P] Write integration tests for Admin login endpoint in `backend/src/test/java/com/hiresync/controllers/AdminAuthControllerTest.java`
-- [ ] T011 Implement `AdminAuthController` for `/api/v1/admin/login` in `backend/src/main/java/com/hiresync/controllers/AdminAuthController.java`
+- [X] T006 Implement `Admin` entity and repository in `backend/src/main/java/com/hiresync/models/Admin.java`
+- [X] T007 [P] Create `AdminRepository` in `backend/src/main/java/com/hiresync/repositories/AdminRepository.java`
+- [X] T008 [P] Write unit tests for JWT token generation and validation in `backend/src/test/java/com/hiresync/security/JwtTokenTest.java`
+- [X] T009 Implement JWT security configuration in `backend/src/main/java/com/hiresync/security/JwtUtils.java`
+- [X] T010 [P] Write integration tests for Admin login endpoint in `backend/src/test/java/com/hiresync/controllers/AdminAuthControllerTest.java`
+- [X] T011 Implement `AdminAuthController` for `/api/v1/admin/login` in `backend/src/main/java/com/hiresync/controllers/AdminAuthController.java`
 
 **Checkpoint**: Foundation ready - JWT Auth is functional.
 
@@ -56,8 +56,8 @@
 
 ### Tests for User Story 1 ⚠️
 
-- [ ] T012 [P] [US1] Write unit tests for `JobPostingService.findAll()` in `backend/src/test/java/com/hiresync/services/JobPostingServiceTest.java`
-- [ ] T013 [P] [US1] Write integration tests for `JobPostingController` GET endpoints in `backend/src/test/java/com/hiresync/controllers/JobPostingControllerTest.java`
+- [X] T012 [P] [US1] Write unit tests for `JobPostingService.findAll()` in `backend/src/test/java/com/hiresync/services/JobPostingServiceTest.java`
+- [X] T013 [P] [US1] Write integration tests for `JobPostingController` GET endpoints in `backend/src/test/java/com/hiresync/controllers/JobPostingControllerTest.java`
 - [ ] T014 [P] [US1] Write frontend tests for Job List component in `frontend/tests/JobListPage.test.js`
 
 ### Implementation for User Story 1
