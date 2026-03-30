@@ -29,14 +29,14 @@ class JobPostingControllerTest {
         
         JobPosting post = new JobPosting();
         post.setCompanyName("Test Company");
-        post.setJobCategory("Backend Developer");
-        post.setSourceType("URL");
+        post.setField("Backend Developer");
+        post.setSource(JobPosting.SourceType.URL);
         jobPostingRepository.save(post);
     }
 
     @Test
     void shouldReturnJobPostingsList() throws Exception {
-        mockMvc.perform(get("/api/v1/job-postings")
+        mockMvc.perform(get("/api/job-postings")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
@@ -47,10 +47,10 @@ class JobPostingControllerTest {
     void shouldReturnJobPostingDetail() throws Exception {
         JobPosting savedPost = jobPostingRepository.findAll().get(0);
         
-        mockMvc.perform(get("/api/v1/job-postings/" + savedPost.getId())
+        mockMvc.perform(get("/api/job-postings/" + savedPost.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.companyName").value("Test Company"))
-                .andExpect(jsonPath("$.jobCategory").value("Backend Developer"));
+                .andExpect(jsonPath("$.field").value("Backend Developer"));
     }
 }

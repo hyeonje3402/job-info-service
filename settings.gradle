@@ -1,0 +1,3 @@
+rootProject.name = 'hiresync-parent'
+include 'backend'
+// frontend는 별도의 npm/react 프로젝트로 유지하되 빌드 관리에 통합 가능

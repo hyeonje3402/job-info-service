@@ -7,6 +7,7 @@
 - **Frontend**: Node.js 18+, npm 9+
 - **Database**: MySQL 8.0+
 
+
 ## Database Setup
 1. MySQL 서버를 실행합니다.
 2. `hiresync` 데이터베이스를 생성합니다.

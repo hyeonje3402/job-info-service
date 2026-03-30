@@ -50,9 +50,10 @@ public class WebSecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/v1/admin/login").permitAll()
-                                .requestMatchers("/api/v1/job-postings/**").permitAll()
+                        auth.requestMatchers("/api/admin/login").permitAll()
+                                .requestMatchers("/api/job-postings/**").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
+                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                                 .requestMatchers("/", "/**").permitAll() // 모든 경로에 대한 기본적인 접근을 허용 (테스트용)
                                 .anyRequest().authenticated()
                 );

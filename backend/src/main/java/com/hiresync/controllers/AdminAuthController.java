@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/admin")
+@RequestMapping("/api/admin")
 public class AdminAuthController {
 
     @Autowired

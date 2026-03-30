@@ -2,7 +2,7 @@
 
 # API Contract: HireSync 채용 정보 서비스
 
-## Base URL: `/api/v1`
+## Base URL: `/api`
 
 ### 1. Public API (구직자용)
 
@@ -64,7 +64,7 @@
   }
   ```
 
-#### POST `/admin/job-postings/upload-pdf`
+#### POST `/admin/jobs/pdf`
 PDF 파일을 업로드하여 정보를 추출하고 등록합니다.
 - **Request Body**: `multipart/form-data` (file: `pdfFile`)
 - **Response (201 Created)**:

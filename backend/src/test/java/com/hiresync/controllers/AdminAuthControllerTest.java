@@ -50,7 +50,7 @@ class AdminAuthControllerTest {
         loginRequest.put("username", "admin");
         loginRequest.put("password", "password123");
 
-        mockMvc.perform(post("/api/v1/admin/login")
+        mockMvc.perform(post("/api/admin/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
@@ -63,7 +63,7 @@ class AdminAuthControllerTest {
         loginRequest.put("username", "admin");
         loginRequest.put("password", "wrongpassword");
 
-        mockMvc.perform(post("/api/v1/admin/login")
+        mockMvc.perform(post("/api/admin/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isUnauthorized());
