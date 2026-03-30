@@ -7,6 +7,7 @@
 - **Frontend**: Node.js 18+, npm 9+
 - **Database**: MySQL 8.0+
 
+
 ## Database Setup
 1. MySQL 서버를 실행합니다.
 2. `hiresync` 데이터베이스를 생성합니다.
@@ -27,6 +28,7 @@
 1. `frontend` 디렉토리로 이동합니다.
 2. 의존성 라이브러리를 설치합니다.
    ```bash
+   
    npm install
    ```
 3. 애플리케이션을 실행합니다.

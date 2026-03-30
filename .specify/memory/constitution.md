@@ -37,9 +37,11 @@ Follow-up TODOs: None
 코드 변경 사항은 지속적으로 통합(CI)되며, 자동화된 테스트를 통해 품질을 검증합니다. 99.9% 이상의 가용성을 유지하기 위해 시스템의 안정성을 지속적으로 모니터링합니다.
 
 ## 기술 스택 및 제약 사항
-- **Backend**: Node.js (Express/NestJS) 또는 Python (FastAPI)
-- **Frontend**: React (TypeScript)
+- **Backend**: Java 21 (Spring Boot 3.5.x)
+- **Frontend**: React 19 (TypeScript)
+- **Build System**: Gradle 8+
 - **Database**: PostgreSQL (개인정보 암호화 저장)
+- **AI Engine**: Spring AI (OpenAI API)
 - **Infrastructure**: AWS (Auto-scaling, HTTPS 적용)
 - **Security**: OAuth 2.0, JWT, SSL/TLS
 
@@ -53,8 +55,9 @@ Follow-up TODOs: None
 
 ## Governance
 - 본 헌장은 프로젝트의 모든 의사결정과 개발 활동의 최상위 가이드라인입니다.
+- 모든 코드 변경, 기술적 결정, 프로젝트 구조 변경은 반드시 `changelog.md`에 기록되어야 합니다. 기록 시에는 **변경 이유**와 **변경 내용**이 상세히 포함되어야 합니다.
 - 헌장 수정은 신중하게 이루어져야 하며, 수정 시 버전 번호를 갱신하고 변경 사항을 기록합니다.
 - 모든 PR과 코드 리뷰는 본 헌장의 원칙(특히 TDD와 보안)을 준수하는지 확인해야 합니다.
 - 헌장과 실제 구현 사이에 충돌이 발생할 경우, 헌장의 원칙을 우선하되 필요시 헌장을 개정합니다.
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-19 | **Last Amended**: 2026-03-19
+**Version**: 1.0.1 | **Ratified**: 2026-03-19 | **Last Amended**: 2026-03-26
