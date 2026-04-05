@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -45,26 +44,39 @@ public class PdfAnalysisController {
 
     @PostMapping(value = "/pdf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<?>> analyzePdf(@RequestParam("file") MultipartFile file) {
-        String result = "";
-        Source source = saveSource("pdf", "PENDING", null, null);
+        String aiResult = "";
+        Source source = saveSource("pdf", "PENDING", null, null, null);
         
         try {
             log.info("Starting PDF analysis for file: {}", file.getOriginalFilename());
             Resource pdfResource = new ByteArrayResource(file.getBytes());
             
-            result = pdfAnalysisService.analyzePdf(pdfResource, "Extract all job details: company name, location, category/position, requirements, openingDate, closingDate, application method, expected salary.");
+            // 1. Extract raw text from PDF
+            String rawText = pdfAnalysisService.extractTextFromPdf(pdfResource);
+            source.setRawText(rawText);
+            sourceRepository.save(source); // Save raw text early
 
-            if (result.contains("```json")) {
-                result = result.substring(result.indexOf("```json") + 7);
-                result = result.substring(0, result.lastIndexOf("```"));
-            } else if (result.contains("```")) {
-                result = result.substring(result.indexOf("```") + 3);
-                result = result.substring(0, result.lastIndexOf("```"));
+            if (rawText.isBlank()) {
+                updateSource(source, "FAILED", "Could not extract text from PDF", null, null);
+                return ResponseEntity.ok(new ApiResponse<>("error", "Empty PDF content"));
             }
-            result = result.trim();
+
+            // 2. Analyze text with AI
+            aiResult = pdfAnalysisService.analyzeText(rawText);
+            log.debug("AI Raw Response: {}", aiResult);
+
+            // Clean up JSON response if markdown is present
+            if (aiResult.contains("```json")) {
+                aiResult = aiResult.substring(aiResult.indexOf("```json") + 7);
+                aiResult = aiResult.substring(0, aiResult.lastIndexOf("```"));
+            } else if (aiResult.contains("```")) {
+                aiResult = aiResult.substring(aiResult.indexOf("```") + 3);
+                aiResult = aiResult.substring(0, aiResult.lastIndexOf("```"));
+            }
+            aiResult = aiResult.trim();
 
             List<JobPosting> extractedPostings = new ArrayList<>();
-            JsonNode rootNode = objectMapper.readTree(result);
+            JsonNode rootNode = objectMapper.readTree(aiResult);
             if (rootNode.isArray()) {
                 extractedPostings = objectMapper.convertValue(rootNode, new TypeReference<List<JobPosting>>() {});
             } else if (rootNode.has("jobPostings")) {
@@ -85,53 +97,71 @@ public class PdfAnalysisController {
             }
             
             if (extractedPostings.isEmpty()) {
-                updateSource(source, "FAILED", "No data extracted", result);
+                log.warn("No data extracted from AI response. Raw result: {}", aiResult);
+                updateSource(source, "FAILED", "No data extracted from AI", aiResult, rawText);
                 return ResponseEntity.ok(new ApiResponse<>("error", "No data extracted"));
             }
 
             JobPosting firstSaved = null;
+            int savedCount = 0;
             for (JobPosting extractedData : extractedPostings) {
-                if (extractedData.getCompanyName() == null) extractedData.setCompanyName("Unknown Company");
-                if (extractedData.getLocation() == null) extractedData.setLocation("Unknown");
-                if (extractedData.getPosition() == null) extractedData.setPosition("General");
-                if (extractedData.getRequirements() == null) extractedData.setRequirements("N/A");
+                // Ensure all non-nullable fields are set
+                if (extractedData.getCompanyName() == null || extractedData.getCompanyName().isBlank()) extractedData.setCompanyName("Unknown Company");
+                if (extractedData.getLocation() == null || extractedData.getLocation().isBlank()) extractedData.setLocation("Unknown");
+                if (extractedData.getPosition() == null || extractedData.getPosition().isBlank()) extractedData.setPosition("General");
+                if (extractedData.getRequirements() == null || extractedData.getRequirements().isBlank()) extractedData.setRequirements("N/A");
                 if (extractedData.getOpeningDate() == null) extractedData.setOpeningDate(LocalDate.now());
                 if (extractedData.getClosingDate() == null) extractedData.setClosingDate(LocalDate.now().plusMonths(1));
-                if (extractedData.getApplicationMethod() == null) extractedData.setApplicationMethod("N/A");
-                if (extractedData.getExpectedSalary() == null) extractedData.setExpectedSalary("Negotiable");
+                if (extractedData.getApplicationMethod() == null || extractedData.getApplicationMethod().isBlank()) extractedData.setApplicationMethod("N/A");
+                if (extractedData.getExpectedSalary() == null || extractedData.getExpectedSalary().isBlank()) extractedData.setExpectedSalary("Negotiable");
                 
                 extractedData.setStatus("PENDING");
                 extractedData.setSource(source);
                 
-                JobPosting saved = jobPostingService.save(extractedData);
-                if (firstSaved == null) firstSaved = saved;
+                try {
+                    JobPosting saved = jobPostingService.save(extractedData);
+                    savedCount++;
+                    if (firstSaved == null) firstSaved = saved;
+                } catch (Exception e) {
+                    log.error("Failed to save JobPosting: {}. Error: {}", extractedData.getCompanyName(), e.getMessage());
+                }
             }
 
-            updateSource(source, "SUCCESS", null, result);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(firstSaved));
+            if (savedCount > 0) {
+                log.info("Successfully saved {} job postings", savedCount);
+                updateSource(source, "SUCCESS", null, aiResult, rawText);
+                return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(firstSaved));
+            } else {
+                updateSource(source, "FAILED", "Failed to save any data to database", aiResult, rawText);
+                return ResponseEntity.status(500).body(new ApiResponse<>("error", "Database save failure"));
+            }
             
         } catch (IOException e) {
-            updateSource(source, "FAILED", "IOException: " + e.getMessage(), null);
+            log.error("IOException during PDF analysis: {}", e.getMessage());
+            updateSource(source, "FAILED", "IOException: " + e.getMessage(), null, null);
             return ResponseEntity.status(500).body(new ApiResponse<>("error", "Error reading PDF file"));
         } catch (Exception e) {
-            updateSource(source, "FAILED", "Unexpected Error: " + e.getMessage(), result);
+            log.error("Unexpected error during PDF analysis: {}", e.getMessage(), e);
+            updateSource(source, "FAILED", "Unexpected Error: " + e.getMessage(), aiResult, null);
             return ResponseEntity.status(500).body(new ApiResponse<>("error", "Unexpected error during PDF analysis"));
         }
     }
 
-    private Source saveSource(String type, String status, String message, String data) {
+    private Source saveSource(String type, String status, String message, String data, String rawText) {
         Source s = new Source();
         s.setType(type);
         s.setStatus(status);
         s.setErrorMessage(message);
         s.setExtractedData(data);
+        s.setRawText(rawText);
         return sourceRepository.save(s);
     }
 
-    private void updateSource(Source s, String status, String message, String data) {
+    private void updateSource(Source s, String status, String message, String data, String rawText) {
         s.setStatus(status);
         s.setErrorMessage(message);
         s.setExtractedData(data);
+        if (rawText != null) s.setRawText(rawText);
         sourceRepository.save(s);
     }
 }

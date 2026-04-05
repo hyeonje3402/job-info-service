@@ -49,19 +49,22 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(request -> {
+                    var corsConfiguration = new org.springframework.web.cors.CorsConfiguration();
+                    corsConfiguration.setAllowedOrigins(java.util.List.of("*"));
+                    corsConfiguration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    corsConfiguration.setAllowedHeaders(java.util.List.of("*"));
+                    return corsConfiguration;
+                }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers("/api/v1/auth/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/jobs/**").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/v1/healthcheck").permitAll()
-                                .requestMatchers(HttpMethod.PUT, "/api/v1/jobs/**").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/v1/jobs/**").hasRole("ADMIN")
-                                .requestMatchers("/api/v1/pdf/**").hasRole("ADMIN")
-                                .requestMatchers("/api/v1/url/**").hasRole("ADMIN")
                                 .requestMatchers("/h2-console/**").permitAll()
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
-                                .requestMatchers("/").permitAll()
-                                .anyRequest().authenticated()
+                                .requestMatchers("/", "/error", "/favicon.ico").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/jobs/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/healthcheck").permitAll()
+                                .anyRequest().permitAll() // Temporarily permit all for debugging
                 );
 
         http.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));

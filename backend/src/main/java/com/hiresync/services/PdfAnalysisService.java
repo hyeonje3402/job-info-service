@@ -1,4 +1,3 @@
-
 package com.hiresync.services;
 
 import org.slf4j.Logger;
@@ -27,37 +26,59 @@ public class PdfAnalysisService {
         this.chatClient = chatClientBuilder.build();
     }
 
-    public String analyzePdf(Resource pdfResource, String query) {
+    /**
+     * Extracts raw text from a PDF resource.
+     */
+    public String extractTextFromPdf(Resource pdfResource) {
         try {
-            // 1. Tika를 사용하여 문서 읽기
             TikaDocumentReader reader = new TikaDocumentReader(pdfResource);
             List<Document> documents = reader.get();
             log.info("Read {} document parts from PDF", documents.size());
 
-            // 2. 텍스트 분할
             TokenTextSplitter splitter = new TokenTextSplitter();
             List<Document> splitDocs = splitter.apply(documents);
 
-            // 3. 컨텍스트 결합
             String context = splitDocs.stream()
                     .map(Document::getText)
                     .collect(Collectors.joining("\n"));
 
             if (context == null || context.trim().isEmpty()) {
                 log.warn("Extracted text from PDF is empty");
-                return "{\"jobPostings\": []}";
+                return "";
             }
 
             log.info("Extracted text length: {}", context.length());
+            return context;
+        } catch (Exception e) {
+            log.error("Error extracting text from PDF: {}", e.getMessage());
+            return "";
+        }
+    }
 
-            // 4. AI 질의
+    /**
+     * Sends the provided text to AI to extract job details.
+     */
+    public String analyzeText(String context) {
+        if (context == null || context.trim().isEmpty()) {
+            return "{\"jobPostings\": []}";
+        }
+        
+        try {
             return chatClient.prompt()
                     .user(u -> u.text(extractionPrompt).param("context", context))
                     .call()
                     .content();
         } catch (Exception e) {
-            log.error("Error analyzing PDF: {}", e.getMessage());
+            log.error("Error analyzing text with AI: {}", e.getMessage());
             return "{\"jobPostings\": []}";
         }
+    }
+
+    /**
+     * Combined method for backward compatibility if needed.
+     */
+    public String analyzePdf(Resource pdfResource, String query) {
+        String context = extractTextFromPdf(pdfResource);
+        return analyzeText(context);
     }
 }

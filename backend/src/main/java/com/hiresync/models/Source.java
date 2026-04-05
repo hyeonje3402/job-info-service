@@ -23,6 +23,9 @@ public class Source {
     
     @Column(name = "extracted_data", columnDefinition = "JSON")
     private String extractedData;
+
+    @Column(name = "raw_text", columnDefinition = "TEXT")
+    private String rawText;
     
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
