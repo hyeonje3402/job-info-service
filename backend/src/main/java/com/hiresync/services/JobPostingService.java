@@ -34,13 +34,14 @@ public class JobPostingService {
         return jobPostingRepository.findById(id).map(jobPosting -> {
             jobPosting.setCompanyName(updatedJobPosting.getCompanyName());
             jobPosting.setLocation(updatedJobPosting.getLocation());
-            jobPosting.setField(updatedJobPosting.getField());
-            jobPosting.setConditions(updatedJobPosting.getConditions());
-            jobPosting.setDeadline(updatedJobPosting.getDeadline());
-            jobPosting.setMethod(updatedJobPosting.getMethod());
+            jobPosting.setPosition(updatedJobPosting.getPosition());
+            jobPosting.setRequirements(updatedJobPosting.getRequirements());
+            jobPosting.setOpeningDate(updatedJobPosting.getOpeningDate());
+            jobPosting.setClosingDate(updatedJobPosting.getClosingDate());
+            jobPosting.setApplicationMethod(updatedJobPosting.getApplicationMethod());
             jobPosting.setExpectedSalary(updatedJobPosting.getExpectedSalary());
+            jobPosting.setStatus(updatedJobPosting.getStatus());
             jobPosting.setSource(updatedJobPosting.getSource());
-            jobPosting.setSourceOrigin(updatedJobPosting.getSourceOrigin());
             return jobPostingRepository.save(jobPosting);
         });
     }

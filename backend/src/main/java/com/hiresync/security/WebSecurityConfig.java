@@ -3,6 +3,7 @@ package com.hiresync.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -50,15 +51,19 @@ public class WebSecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/admin/login").permitAll()
-                                .requestMatchers("/api/job-postings/**").permitAll()
+                        auth.requestMatchers("/api/v1/auth/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/jobs/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/healthcheck").permitAll()
+                                .requestMatchers(HttpMethod.PUT, "/api/v1/jobs/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/v1/jobs/**").hasRole("ADMIN")
+                                .requestMatchers("/api/v1/pdf/**").hasRole("ADMIN")
+                                .requestMatchers("/api/v1/url/**").hasRole("ADMIN")
                                 .requestMatchers("/h2-console/**").permitAll()
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
-                                .requestMatchers("/", "/**").permitAll() // 모든 경로에 대한 기본적인 접근을 허용 (테스트용)
+                                .requestMatchers("/").permitAll()
                                 .anyRequest().authenticated()
                 );
 
-        // H2 콘솔은 프레임을 사용하므로 SAMEORIGIN 설정을 추가해야 함
         http.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
         http.authenticationProvider(authenticationProvider());

@@ -1,6 +1,6 @@
 package com.hiresync.security;
 
-import com.hiresync.models.Admin;
+import com.hiresync.models.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,7 +15,6 @@ public class UserDetailsImpl implements UserDetails {
     private static final long serialVersionUID = 1L;
 
     private Long id;
-    private String username;
     private String email;
 
     @JsonIgnore
@@ -23,24 +22,22 @@ public class UserDetailsImpl implements UserDetails {
 
     private Collection<? extends GrantedAuthority> authorities;
 
-    public UserDetailsImpl(Long id, String username, String email, String password,
+    public UserDetailsImpl(Long id, String email, String password,
                            Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
-        this.username = username;
         this.email = email;
         this.password = password;
         this.authorities = authorities;
     }
 
-    public static UserDetailsImpl build(Admin admin) {
+    public static UserDetailsImpl build(User user) {
         List<GrantedAuthority> authorities = Collections.singletonList(
-                new SimpleGrantedAuthority(admin.getRole()));
+                new SimpleGrantedAuthority(user.getRole()));
 
         return new UserDetailsImpl(
-                admin.getId(),
-                admin.getUsername(),
-                admin.getEmail(),
-                admin.getPassword(),
+                user.getId(),
+                user.getEmail(),
+                user.getPassword(),
                 authorities);
     }
 
@@ -56,7 +53,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public String getUsername() {
-        return username;
+        return email;
     }
 
     @Override

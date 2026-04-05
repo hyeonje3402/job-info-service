@@ -4,9 +4,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hiresync.models.ExtractionLog;
+import com.hiresync.models.ApiResponse;
 import com.hiresync.models.JobPosting;
-import com.hiresync.repositories.ExtractionLogRepository;
+import com.hiresync.models.Source;
+import com.hiresync.repositories.SourceRepository;
 import com.hiresync.services.JobPostingService;
 import com.hiresync.services.PdfAnalysisService;
 import org.slf4j.Logger;
@@ -20,41 +21,39 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/admin/jobs")
+@RequestMapping("/api/v1")
 public class PdfAnalysisController {
 
     private static final Logger log = LoggerFactory.getLogger(PdfAnalysisController.class);
     private final PdfAnalysisService pdfAnalysisService;
     private final JobPostingService jobPostingService;
-    private final ExtractionLogRepository extractionLogRepository;
+    private final SourceRepository sourceRepository;
     private final ObjectMapper objectMapper;
 
-    public PdfAnalysisController(PdfAnalysisService pdfAnalysisService, JobPostingService jobPostingService, ExtractionLogRepository extractionLogRepository, ObjectMapper objectMapper) {
+    public PdfAnalysisController(PdfAnalysisService pdfAnalysisService, JobPostingService jobPostingService, SourceRepository sourceRepository, ObjectMapper objectMapper) {
         this.pdfAnalysisService = pdfAnalysisService;
         this.jobPostingService = jobPostingService;
-        this.extractionLogRepository = extractionLogRepository;
-        // 알 수 없는 속성이 있어도 파싱 실패하지 않도록 설정
+        this.sourceRepository = sourceRepository;
         this.objectMapper = objectMapper.copy().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     @PostMapping(value = "/pdf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> analyzePdf(@RequestParam("pdfFile") MultipartFile file) {
+    public ResponseEntity<ApiResponse<?>> analyzePdf(@RequestParam("file") MultipartFile file) {
         String result = "";
+        Source source = saveSource("pdf", "PENDING", null, null);
+        
         try {
             log.info("Starting PDF analysis for file: {}", file.getOriginalFilename());
             Resource pdfResource = new ByteArrayResource(file.getBytes());
             
-            // 1. AI 분석 수행
-            result = pdfAnalysisService.analyzePdf(pdfResource, "Extract all job details: company name, location, category/field, conditions, period/deadline, method, salary.");
-            log.debug("AI Raw Analysis Result: {}", result);
+            result = pdfAnalysisService.analyzePdf(pdfResource, "Extract all job details: company name, location, category/position, requirements, openingDate, closingDate, application method, expected salary.");
 
-            // 마크다운 코드 블록 제거
             if (result.contains("```json")) {
                 result = result.substring(result.indexOf("```json") + 7);
                 result = result.substring(0, result.lastIndexOf("```"));
@@ -64,99 +63,75 @@ public class PdfAnalysisController {
             }
             result = result.trim();
 
-            // 2. JSON 파싱 (유연한 처리)
             List<JobPosting> extractedPostings = new ArrayList<>();
-            try {
-                JsonNode rootNode = objectMapper.readTree(result);
-                if (rootNode.isArray()) {
-                    log.debug("Root node is an array");
-                    extractedPostings = objectMapper.convertValue(rootNode, new TypeReference<List<JobPosting>>() {});
-                } else if (rootNode.has("jobPostings")) {
-                    JsonNode jobPostingsNode = rootNode.get("jobPostings");
-                    log.debug("Found 'jobPostings' node. IsArray: {}", jobPostingsNode.isArray());
-                    
-                    if (jobPostingsNode.isArray()) {
-                        extractedPostings = objectMapper.convertValue(jobPostingsNode, new TypeReference<List<JobPosting>>() {});
-                    } else if (jobPostingsNode.isObject()) {
-                        JobPosting single = objectMapper.convertValue(jobPostingsNode, JobPosting.class);
-                        if (single != null && single.getCompanyName() != null) {
-                            extractedPostings.add(single);
-                        }
-                    }
-                } else if (rootNode.isObject()) {
-                    log.debug("Root node is an object");
-                    // 단일 객체인 경우
-                    JobPosting single = objectMapper.convertValue(rootNode, JobPosting.class);
+            JsonNode rootNode = objectMapper.readTree(result);
+            if (rootNode.isArray()) {
+                extractedPostings = objectMapper.convertValue(rootNode, new TypeReference<List<JobPosting>>() {});
+            } else if (rootNode.has("jobPostings")) {
+                JsonNode jobPostingsNode = rootNode.get("jobPostings");
+                if (jobPostingsNode.isArray()) {
+                    extractedPostings = objectMapper.convertValue(jobPostingsNode, new TypeReference<List<JobPosting>>() {});
+                } else if (jobPostingsNode.isObject()) {
+                    JobPosting single = objectMapper.convertValue(jobPostingsNode, JobPosting.class);
                     if (single != null && single.getCompanyName() != null) {
                         extractedPostings.add(single);
                     }
                 }
-            } catch (Exception e) {
-                log.error("Failed to parse AI response. Raw result: {}", result, e);
-                saveLog(file.getOriginalFilename(), "FAIL", "JSON Parsing Error: " + e.getMessage(), result);
-                return ResponseEntity.status(500).body(Map.of(
-                    "error", "JSON Parsing Error: " + e.getMessage(),
-                    "rawResult", result
-                ));
+            } else if (rootNode.isObject()) {
+                JobPosting single = objectMapper.convertValue(rootNode, JobPosting.class);
+                if (single != null && single.getCompanyName() != null) {
+                    extractedPostings.add(single);
+                }
             }
             
             if (extractedPostings.isEmpty()) {
-                log.warn("No job postings extracted from AI response");
-                saveLog(file.getOriginalFilename(), "SUCCESS_EMPTY", "No data extracted", result);
+                updateSource(source, "FAILED", "No data extracted", result);
+                return ResponseEntity.ok(new ApiResponse<>("error", "No data extracted"));
             }
 
-            List<JobPosting> savedPostings = new ArrayList<>();
+            JobPosting firstSaved = null;
             for (JobPosting extractedData : extractedPostings) {
-                // 3. 필수 정보 보완 및 기본값 설정
-                if (extractedData.getCompanyName() == null || extractedData.getCompanyName().trim().isEmpty()) {
-                    extractedData.setCompanyName("Unknown Company");
-                }
-                if (extractedData.getField() == null || extractedData.getField().trim().isEmpty()) {
-                    extractedData.setField("General");
-                }
+                if (extractedData.getCompanyName() == null) extractedData.setCompanyName("Unknown Company");
+                if (extractedData.getLocation() == null) extractedData.setLocation("Unknown");
+                if (extractedData.getPosition() == null) extractedData.setPosition("General");
+                if (extractedData.getRequirements() == null) extractedData.setRequirements("N/A");
+                if (extractedData.getOpeningDate() == null) extractedData.setOpeningDate(LocalDate.now());
+                if (extractedData.getClosingDate() == null) extractedData.setClosingDate(LocalDate.now().plusMonths(1));
+                if (extractedData.getApplicationMethod() == null) extractedData.setApplicationMethod("N/A");
+                if (extractedData.getExpectedSalary() == null) extractedData.setExpectedSalary("Negotiable");
                 
-                extractedData.setSource(JobPosting.SourceType.PDF);
-                extractedData.setSourceOrigin(file.getOriginalFilename());
+                extractedData.setStatus("PENDING");
+                extractedData.setSource(source);
                 
-                // 4. DB에 저장
-                log.info("Saving extracted job posting ({}) to DB", extractedData.getCompanyName());
-                savedPostings.add(jobPostingService.save(extractedData));
+                JobPosting saved = jobPostingService.save(extractedData);
+                if (firstSaved == null) firstSaved = saved;
             }
 
-            // 성공 로그 기록
-            saveLog(file.getOriginalFilename(), "SUCCESS", "Extracted and saved " + savedPostings.size() + " jobs", result);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("count", savedPostings.size());
-            response.put("status", "SUCCESS");
-            response.put("extractedData", savedPostings);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            updateSource(source, "SUCCESS", null, result);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(firstSaved));
+            
         } catch (IOException e) {
-            log.error("IOException reading file: {}", file.getOriginalFilename(), e);
-            saveLog(file.getOriginalFilename(), "FAIL", "IOException: " + e.getMessage(), null);
-            return ResponseEntity.status(500).body(Map.of("error", "Error reading PDF file: " + e.getMessage()));
+            updateSource(source, "FAILED", "IOException: " + e.getMessage(), null);
+            return ResponseEntity.status(500).body(new ApiResponse<>("error", "Error reading PDF file"));
         } catch (Exception e) {
-            log.error("Unexpected error during PDF analysis", e);
-            saveLog(file.getOriginalFilename(), "FAIL", "Unexpected Error: " + e.getMessage(), result);
-            return ResponseEntity.status(500).body(Map.of(
-                "error", "Unexpected Error: " + e.getMessage(),
-                "rawResult", result
-            ));
+            updateSource(source, "FAILED", "Unexpected Error: " + e.getMessage(), result);
+            return ResponseEntity.status(500).body(new ApiResponse<>("error", "Unexpected error during PDF analysis"));
         }
     }
 
-    private void saveLog(String filename, String status, String message, String data) {
-        try {
-            ExtractionLog exLog = new ExtractionLog();
-            exLog.setSourceType("PDF");
-            exLog.setSourceOrigin(filename);
-            exLog.setStatus(status);
-            exLog.setErrorMessage(message);
-            exLog.setExtractedData(data);
-            extractionLogRepository.save(exLog);
-        } catch (Exception e) {
-            log.error("Failed to save extraction log", e);
-        }
+    private Source saveSource(String type, String status, String message, String data) {
+        Source s = new Source();
+        s.setType(type);
+        s.setStatus(status);
+        s.setErrorMessage(message);
+        s.setExtractedData(data);
+        return sourceRepository.save(s);
+    }
+
+    private void updateSource(Source s, String status, String message, String data) {
+        s.setStatus(status);
+        s.setErrorMessage(message);
+        s.setExtractedData(data);
+        sourceRepository.save(s);
     }
 }

@@ -10,7 +10,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -29,28 +32,43 @@ class JobPostingControllerTest {
         
         JobPosting post = new JobPosting();
         post.setCompanyName("Test Company");
-        post.setField("Backend Developer");
-        post.setSource(JobPosting.SourceType.URL);
+        post.setLocation("Seoul");
+        post.setPosition("Backend Developer");
+        post.setRequirements("Java, Spring");
+        post.setOpeningDate(LocalDate.now());
+        post.setClosingDate(LocalDate.now().plusMonths(1));
+        post.setApplicationMethod("Email");
+        post.setExpectedSalary("5000");
+        post.setStatus("APPROVED");
         jobPostingRepository.save(post);
     }
 
     @Test
     void shouldReturnJobPostingsList() throws Exception {
-        mockMvc.perform(get("/api/job-postings")
+        mockMvc.perform(get("/api/v1/jobs")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content[0].companyName").value("Test Company"));
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content[0].companyName").value("Test Company"));
     }
 
     @Test
     void shouldReturnJobPostingDetail() throws Exception {
         JobPosting savedPost = jobPostingRepository.findAll().get(0);
         
-        mockMvc.perform(get("/api/job-postings/" + savedPost.getId())
+        mockMvc.perform(get("/api/v1/jobs/" + savedPost.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.companyName").value("Test Company"))
-                .andExpect(jsonPath("$.field").value("Backend Developer"));
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.companyName").value("Test Company"))
+                .andExpect(jsonPath("$.data.position").value("Backend Developer"));
+    }
+
+    @Test
+    void shouldReturnHealthCheck() throws Exception {
+        mockMvc.perform(post("/api/v1/healthcheck"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"));
     }
 }

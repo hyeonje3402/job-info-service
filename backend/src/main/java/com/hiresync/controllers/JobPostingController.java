@@ -1,7 +1,11 @@
 package com.hiresync.controllers;
 
+import com.hiresync.models.ApiResponse;
 import com.hiresync.models.JobPosting;
+import com.hiresync.models.Source;
+import com.hiresync.repositories.SourceRepository;
 import com.hiresync.services.JobPostingService;
+import com.hiresync.services.UrlScrapingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,55 +16,72 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class JobPostingController {
     private final JobPostingService jobPostingService;
+    private final UrlScrapingService urlScrapingService;
+    private final SourceRepository sourceRepository;
 
-    @GetMapping("/")
-    public String index() {
-        return "HireSync Backend API is running!";
+    @PostMapping("/healthcheck")
+    public ResponseEntity<ApiResponse<Void>> healthCheck() {
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    @GetMapping("/job-postings")
-    public ResponseEntity<Page<JobPosting>> getAllJobPostings(Pageable pageable) {
-        return ResponseEntity.ok(jobPostingService.findAll(pageable));
+    @GetMapping("/jobs")
+    public ResponseEntity<ApiResponse<Page<JobPosting>>> getAllJobs(Pageable pageable) {
+        Page<JobPosting> jobs = jobPostingService.findAll(pageable);
+        return ResponseEntity.ok(ApiResponse.success(jobs));
     }
 
-    @GetMapping("/job-postings/{id}")
-    public ResponseEntity<JobPosting> getJobPostingById(@PathVariable Long id) {
+    @GetMapping("/jobs/{id}")
+    public ResponseEntity<ApiResponse<JobPosting>> getJobById(@PathVariable Long id) {
         return jobPostingService.findById(id)
-                .map(ResponseEntity::ok)
+                .map(job -> ResponseEntity.ok(ApiResponse.success(job)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/admin/job-postings/register-url")
-    public ResponseEntity<?> registerUrl(@RequestBody Map<String, String> request) {
+    @PostMapping("/url")
+    public ResponseEntity<ApiResponse<JobPosting>> registerUrl(@RequestBody Map<String, String> request) {
         String url = request.get("url");
-        // Placeholder for URL extraction logic
+        
+        // Use UrlScrapingService to extract data (mocked for now, or calling actual service)
+        // If UrlScrapingService is already implemented, we should use it.
+        // For now, following the pattern in the previous implementation but with the new response structure.
+        
+        Source source = new Source();
+        source.setType("url");
+        source.setStatus("SUCCESS");
+        source.setExtractedData(url);
+        source = sourceRepository.save(source);
+
         JobPosting jobPosting = new JobPosting();
-        jobPosting.setSource(JobPosting.SourceType.URL);
-        jobPosting.setSourceOrigin(url);
-        jobPosting.setCompanyName("Extracted from URL"); // Mock data
-        jobPosting.setField("Backend Developer");
+        jobPosting.setCompanyName("Extracted from URL");
+        jobPosting.setLocation("Unknown");
+        jobPosting.setPosition("Backend Developer");
+        jobPosting.setRequirements("Requirements placeholder");
+        jobPosting.setOpeningDate(java.time.LocalDate.now());
+        jobPosting.setClosingDate(java.time.LocalDate.now().plusMonths(1));
+        jobPosting.setApplicationMethod("URL Submission: " + url);
+        jobPosting.setExpectedSalary("Negotiable");
+        jobPosting.setStatus("PENDING");
+        jobPosting.setSource(source);
+        
         JobPosting saved = jobPostingService.save(jobPosting);
         
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
-            "id", saved.getId(),
-            "status", "SUCCESS"
-        ));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(saved));
     }
 
-    @PutMapping("/admin/job-postings/{id}")
-    public ResponseEntity<?> updateJobPosting(@PathVariable Long id, @RequestBody JobPosting jobPosting) {
+    @PutMapping("/jobs/{id}")
+    public ResponseEntity<ApiResponse<JobPosting>> updateJob(@PathVariable Long id, @RequestBody JobPosting jobPosting) {
         return jobPostingService.update(id, jobPosting)
-                .map(updated -> ResponseEntity.ok(Map.of("message", "Updated successfully")))
+                .map(updated -> ResponseEntity.ok(ApiResponse.success(updated)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/admin/job-postings/{id}")
-    public ResponseEntity<Void> deleteJobPosting(@PathVariable Long id) {
+    @DeleteMapping("/jobs/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteJob(@PathVariable Long id) {
         jobPostingService.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

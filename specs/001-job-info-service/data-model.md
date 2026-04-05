@@ -1,50 +1,68 @@
-# Data Model: HireSync 채용 정보 서비스
+# Data Model: 취업 정보 포털 (Job Information Portal)
 
-## Database: PostgreSQL
+데이터베이스 스키마 구조와 주요 엔티티의 필드 구성을 정의합니다.
 
-### 1. job_postings (채용 공고 테이블)
-각 채용 공고의 핵심 정보를 저장하는 테이블입니다.
+## 엔티티 정의 (Entities)
 
-| Column Name | Type | Constraints | Description |
-|-------------|------|-------------|-------------|
-| id | BIGSERIAL | PRIMARY KEY | 고유 식별자 |
-| company_name | VARCHAR(255) | NOT NULL | 회사명 |
-| location | VARCHAR(255) | | 회사 위치 |
-| field | VARCHAR(100) | NOT NULL | 채용 분야 |
-| conditions | TEXT | | 채용 조건 |
-| deadline | VARCHAR(100) | | 지원 기간 (마감일) |
-| method | TEXT | | 지원 방법 |
-| expected_salary | VARCHAR(100) | | 예상 급여 |
-| source | VARCHAR(20) | NOT NULL | 정보 출처 (PDF, URL, EMAIL) |
-| source_origin | VARCHAR(500) | | 원본 파일명/URL/이메일 주소 |
-| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 생성일 |
-| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 수정일 |
+### 1. JobPosting (채용 공고)
+채용 정보의 핵심 데이터를 저장합니다.
 
-### 2. admins (관리자 테이블)
-시스템 관리자 계정 정보를 저장하는 테이블입니다.
+| 필드명 | 타입 | 설명 | 제약 조건 |
+| :--- | :--- | :--- | :--- |
+| id | BIGINT | 고유 식별자 | PK, Auto Increment |
+| company_name | VARCHAR(100) | 회사명 | NOT NULL |
+| location | VARCHAR(255) | 회사 위치 | NOT NULL |
+| position | VARCHAR(100) | 채용 분야 | NOT NULL |
+| requirements | TEXT | 채용 조건 | NOT NULL |
+| openingDate | DATE | 모집 시작일 | NOT NULL |
+| closingDate | DATE | 모집 마감일 | NOT NULL |
+| application_method | VARCHAR(255) | 지원 방법 | NOT NULL |
+| expected_salary | VARCHAR(100) | 예상 급여 | NOT NULL |
+| status | VARCHAR(20) | 게시 상태 (PENDING, APPROVED, EXPIRED) | NOT NULL |
+| source | BIGINT | 정보 소스 | FK (source.id) |
+| created_at | DATETIME | 생성 일시 | NOT NULL |
+| updated_at | DATETIME | 수정 일시 | NOT NULL |
 
-| Column Name | Type | Constraints | Description |
-|-------------|------|-------------|-------------|
-| id | BIGSERIAL | PRIMARY KEY | 고유 식별자 |
-| username | VARCHAR(50) | NOT NULL, UNIQUE | 관리자 아이디 |
-| password | VARCHAR(255) | NOT NULL | 암호화된 비밀번호 |
-| email | VARCHAR(100) | NOT NULL, UNIQUE | 관리자 이메일 |
-| role | VARCHAR(20) | DEFAULT 'ADMIN' | 권한 레벨 |
-| last_login | TIMESTAMP | | 마지막 로그인 일시 |
+### 2. User (사용자)
+시스템 관리 권한을 가진 사용자와 일반 사용자 정보를 저장합니다.
 
-### 3. extraction_logs (추출 로그 테이블)
-PDF, URL, 이메일로부터 정보를 추출한 내역을 기록하는 테이블입니다.
+| 필드명 | 타입 | 설명 | 제약 조건 |
+| :--- | :--- | :--- | :--- |
+| id | BIGINT | 고유 식별자 | PK, Auto Increment |
+| email | VARCHAR(50) | 이메일 겸 아이디 | UNIQUE, NOT NULL |
+| password | VARCHAR(255) | 비밀번호 (해시) | NOT NULL |
+| name | VARCHAR(100) | 이름 | NOT NULL |
+| role | VARCHAR(100) | 역할 (ADMIN, GENERAL) | NOT NULL |
+| status | VARCHAR(20) | 사용자 상태 (ACTIVE, INACTIVE, REVOKED) | NOT NULL |
+| created_at | DATETIME | 생성 일시 | NOT NULL |
+| updated_at | DATETIME | 수정 일시 | NOT NULL |
 
-| Column Name | Type | Constraints | Description |
-|-------------|------|-------------|-------------|
-| id | BIGSERIAL | PRIMARY KEY | 고유 식별자 |
-| source_type | VARCHAR(20) | NOT NULL | 추출 대상 종류 |
-| source_origin | VARCHAR(500) | | 추출 원본 경로/URL |
-| status | VARCHAR(20) | NOT NULL | 추출 성공 여부 (SUCCESS, FAIL) |
-| error_message | TEXT | | 실패 시 오류 내용 |
-| extracted_data | JSONB | | 추출된 데이터 요약 |
-| processed_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 처리 일시 |
+### 3. Source (정보 소스)
+외부 소스로부터 정보를 수집한 이력을 관리합니다.
 
-## Entity Relationships
-- **Admins**와 **JobPostings**: 관리자가 채용 공고를 생성/수정/삭제함 (1:N 관계).
-- **JobPostings**와 **ExtractionLogs**: 특정 추출 로그로부터 채용 공고가 생성될 수 있음 (1:1 또는 N:1 관계 가능).
+| 필드명 | 타입 | 설명 | 제약 조건 |
+| :--- | :--- | :--- | :--- |
+| id | BIGINT | 고유 식별자 | PK, Auto Increment |
+| type | VARCHAR(20) | 소스 값 (pdf 텍스트, url 링크 등) | NOT NULL |
+| status | VARCHAR(20) | 상태 (SUCCESS, FAILED) | NOT NULL |
+| created_at | DATETIME | 생성 일시 | NOT NULL |
+| updated_at | DATETIME | 수정 일시 | NOT NULL |
+
+## 상태 전이 (State Transitions)
+
+### JobPosting
+
+1. **PENDING**: 소스(PDF, URL, 이메일)로부터 정보가 추출되어 관리자 승인을 대기하는 상태.
+2. **APPROVED**: 관리자가 검토 후 승인하여 일반 사용자에게 노출되는 상태.
+3. **EXPIRED**: 마감일(deadline)이 지나 시스템에 의해 자동으로 숨겨진 상태.
+
+### User
+
+1. **ACTIVE**: 정상 상태
+2. **INACTIVE**: 정지 상태
+3. **REVOKED**: 자격 탈퇴 상태
+
+### Source
+
+1. **SUCCESS**: 정상적으로 정보가 추출된 상태
+2. **FAILED**: 정보 추출이 실패한 상태

@@ -1,105 +1,155 @@
+# API Contracts: 취업 정보 포털 (Job Information Portal)
 
+백엔드와 프론트엔드 간의 통신 규격을 정의합니다. 모든 API는 JSON 형식을 지원합니다.
 
-# API Contract: HireSync 채용 정보 서비스
+## 공통 데이터 구조
 
-## Base URL: `/api`
+### 1. JobPosting (채용 공고)
+| 필드명 | 타입 | 설명 |
+| :--- | :--- | :--- |
+| `id` | `Long` | 고유 식별자 |
+| `companyName` | `String` | 회사명 |
+| `location` | `String` | 근무 지역 |
+| `position` | `String` | 채용 직무 |
+| `requirements` | `String` | 자격 요건 (TEXT) |
+| `openingDate` | `String (ISO-8601)` | 공고 시작일 (YYYY-MM-DD) |
+| `closingDate` | `String (ISO-8601)` | 공고 마감일 (YYYY-MM-DD) |
+| `applicationMethod` | `String` | 지원 방법 |
+| `expectedSalary` | `String` | 예상 연봉 |
+| `status` | `String` | 공고 상태 (`PENDING`, `APPROVED`, `EXPIRED`) |
+| `source` | `Source` | 정보 출처 객체 |
+| `createdAt` | `String (ISO-8601)` | 생성 일시 (YYYY-MM-DDTHH:mm:ss) |
+| `updatedAt` | `String (ISO-8601)` | 수정 일시 (YYYY-MM-DDTHH:mm:ss) |
 
-### 1. Public API (구직자용)
+### 2. Source (정보 출처)
+| 필드명 | 타입 | 설명 |
+| :--- | :--- | :--- |
+| `id` | `Long` | 고유 식별자 |
+| `type` | `String` | 출처 유형 (PDF, URL 등) |
+| `status` | `String` | 파싱 상태 (`SUCCESS`, `FAILED`) |
+| `createdAt` | `String (ISO-8601)` | 생성 일시 |
+| `updatedAt` | `String (ISO-8601)` | 수정 일시 |
 
-#### GET `/job-postings`
-채용 공고 목록을 조회합니다.
-- **Query Parameters**:
-  - `page`: 페이지 번호 (default: 0)
-  - `size`: 페이지 크기 (default: 10)
-  - `category`: 채용 분야 필터 (optional)
-- **Response (200 OK)**:
-  ```json
-  {
-    "content": [
-      {
-        "id": 1,
-        "companyName": "Sample Company",
-        "jobCategory": "Backend Developer",
-        "createdAt": "2026-03-19T10:00:00Z"
-      }
-    ],
-    "totalPages": 1,
-    "totalElements": 1
-  }
-  ```
+### 3. Pagination Response (페이징 응답 - Spring Data Page)
+| 필드명 | 타입 | 설명 |
+| :--- | :--- | :--- |
+| `content` | `Array` | 실제 데이터 목록 (예: `JobPosting[]`) |
+| `totalPages` | `Integer` | 전체 페이지 수 |
+| `totalElements` | `Long` | 전체 데이터 수 |
+| `size` | `Integer` | 페이지당 데이터 수 |
+| `number` | `Integer` | 현재 페이지 번호 (0부터 시작) |
+| `last` | `Boolean` | 마지막 페이지 여부 |
+| `first` | `Boolean` | 첫 번째 페이지 여부 |
+| `numberOfElements` | `Integer` | 현재 페이지의 데이터 수 |
 
-#### GET `/job-postings/{id}`
-특정 채용 공고의 상세 정보를 조회합니다.
-- **Response (200 OK)**:
-  ```json
-  {
-    "id": 1,
-    "companyName": "Sample Company",
-    "companyLocation": "Seoul, Korea",
-    "jobCategory": "Backend Developer",
-    "jobRequirements": "Experience with Spring Boot...",
-    "applicationPeriod": "2026-03-19 to 2026-04-19",
-    "applicationMethod": "Email apply",
-    "expectedSalary": "competitive",
-    "sourceType": "PDF"
-  }
-  ```
+### 4. User (사용자)
+| 필드명 | 타입 | 설명 |
+| :--- | :--- | :--- |
+| `id` | `Long` | 고유 식별자 |
+| `email` | `String` | 이메일 주소. 로그인 아이디로 사용 |
+| `password` | `String` | 비밀번호 (그대로 노출되면 안 됨) |
+| `name` | `String` | 실제 이름 |
+| `role` | `String` | 역할 (`ADMIN`, `GENERAL`) |
+| `status` | `String` | 상태 (`ACTIVE`, `INACTIVE`, `REVOKED`) |
+| `createdAt` | `String (ISO-8601)` | 생성 일시 |
+| `updatedAt` | `String (ISO-8601)` | 수정 일시 |
 
-### 2. Admin API (관리자 전용)
-*모든 요청은 Authorization 헤더에 JWT Bearer 토큰이 필요함.*
+## 공통 응답 구조
+```json
+{
+  "status": "success",
+  "data": { ... } // 단일 객체 또는 페이징 응답 객체
+}
+```
 
-#### POST `/admin/login`
-관리자 로그인을 수행하고 토큰을 발급받습니다.
+## 일반 사용자용 API
+
+### 채용 정보 목록 조회
+- **Method**: `GET`
+- **Path**: `/api/v1/jobs`
+- **Query Params**:
+  - `page` (Integer, default: 0): 페이지 번호
+  - `size` (Integer, default: 10): 페이지당 개수
+  - `sort` (String, optional): 정렬 기준 (예: `createdAt,desc`)
+- **Response Body**:
+  - `status`: "success"
+  - `data`: `Pagination Response` 객체
+
+### 채용 정보 상세 조회
+- **Method**: `GET`
+- **Path**: `/api/v1/jobs/{id}`
+- **Response Body**:
+  - `status`: "success"
+  - `data`: `JobPosting` 객체
+
+### 사용자 등록
+- **Method**: `POST`
+- **Path**: `/api/v1/auth/register`
 - **Request Body**:
-  ```json
-  {
-    "username": "admin",
-    "password": "password123"
-  }
-  ```
-- **Response (200 OK)**:
-  ```json
-  {
-    "token": "eyJhbGciOiJIUzI1NiJ9..."
-  }
-  ```
+  - `email`: `String`
+  - `password`: `String`
+  - `name`: `String`
+  - `role`: `String`
+- **Response Body**:
+  - `status`: "success"
+  - `data`: `User` 객체
 
-#### POST `/admin/jobs/pdf`
-PDF 파일을 업로드하여 정보를 추출하고 등록합니다.
-- **Request Body**: `multipart/form-data` (file: `pdfFile`)
-- **Response (201 Created)**:
-  ```json
-  {
-    "id": 2,
-    "status": "SUCCESS",
-    "extractedData": { ... }
-  }
-  ```
-
-#### POST `/admin/job-postings/register-url`
-URL을 등록하여 정보를 추출하고 저장합니다.
+### 사용자 로그인
+- **Method**: `POST`
+- **Path**: `/api/v1/auth/login`
 - **Request Body**:
-  ```json
-  {
-    "url": "https://company.com/jobs/1"
-  }
-  ```
-- **Response (201 Created)**:
-  ```json
-  {
-    "id": 3,
-    "status": "SUCCESS"
-  }
-  ```
+  - `email`: `String`
+  - `password`: `String`
+- **Response Body**:
+  - `status`: "success"
+  - `data`: JWT 값
 
-#### PUT `/admin/job-postings/{id}`
-기존 채용 공고 정보를 수정합니다.
-- **Request Body**: (Full JobPosting object)
-- **Response (200 OK)**:
-  ```json
-  { "message": "Updated successfully" }
-  ```
+### 사용자 로그아웃
+- **Method**: `POST`
+- **Path**: `/api/v1/auth/logout`
+- **Response Body**:
+  - `status`: "success"
+  - `data`: null
 
-#### DELETE `/admin/job-postings/{id}`
-특정 채용 공고를 삭제합니다.
-- **Response (204 No Content)**: Empty body
+### 사이트 상태 확인
+- **Method**: `POST`
+- **Path**: `/api/v1/healthcheck`
+- **Response Body**:
+  - `status`: "success"
+  - `data`: null
+
+## 관리자용 API
+
+### PDF 업로드 및 정보 추출
+- **Method**: `POST`
+- **Path**: `/api/v1/pdf`
+- **Content-Type**: `multipart/form-data`
+- **Request Body**:
+  - `file`: `MultipartFile` (PDF 파일)
+- **Response Body**:
+  - `status`: "success"
+  - `data`: 생성된 `JobPosting` 객체 (`status`는 `PENDING`)
+
+### URL 등록 및 정보 추출
+- **Method**: `POST`
+- **Path**: `/api/v1/url`
+- **Request Body**:
+  - `url`: `String` (채용 페이지 URL)
+- **Response Body**:
+  - `status`: "success"
+  - `data`: 생성된 `JobPosting` 객체 (`status`는 `PENDING`)
+
+### 채용 정보 수정 (승인도 여기서 처리)
+- **Method**: `PUT`
+- **Path**: `/api/v1/jobs/{id}`
+- **Request Body**: `JobPosting` (수정할 필드 포함)
+- **Response Body**:
+  - `status`: "success"
+  - `data`: 수정된 `JobPosting` 객체
+
+### 채용 정보 삭제
+- **Method**: `DELETE`
+- **Path**: `/api/v1/jobs/{id}`
+- **Response Body**:
+  - `status`: "success"
+  - `data`: `null`
