@@ -1,19 +1,28 @@
 package com.hiresync.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hiresync.extraction.OpenAiExtractionEngine;
 import com.hiresync.models.JobPosting;
 import com.hiresync.repositories.JobPostingRepository;
+import com.hiresync.services.UrlScrapingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -25,6 +34,15 @@ class JobPostingControllerTest {
 
     @Autowired
     private JobPostingRepository jobPostingRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockBean
+    private UrlScrapingService urlScrapingService;
+
+    @MockBean
+    private OpenAiExtractionEngine extractionEngine;
 
     @BeforeEach
     void setUp() {
@@ -66,9 +84,102 @@ class JobPostingControllerTest {
     }
 
     @Test
+    void shouldReturn404WhenJobNotFound() throws Exception {
+        mockMvc.perform(get("/api/v1/jobs/9999")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void shouldReturnHealthCheck() throws Exception {
         mockMvc.perform(post("/api/v1/healthcheck"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"));
+    }
+
+    @Test
+    void shouldUpdateJobPosting() throws Exception {
+        JobPosting savedPost = jobPostingRepository.findAll().get(0);
+        savedPost.setCompanyName("Updated Company");
+        
+        mockMvc.perform(put("/api/v1/jobs/" + savedPost.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(savedPost)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.companyName").value("Updated Company"));
+    }
+
+    @Test
+    void shouldReturn404WhenUpdatingNonExistentJob() throws Exception {
+        JobPosting job = new JobPosting();
+        job.setCompanyName("Ghost Company");
+        
+        mockMvc.perform(put("/api/v1/jobs/9999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(job)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldDeleteJobPosting() throws Exception {
+        JobPosting savedPost = jobPostingRepository.findAll().get(0);
+        
+        mockMvc.perform(delete("/api/v1/jobs/" + savedPost.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"));
+        
+        assert jobPostingRepository.findById(savedPost.getId()).isEmpty();
+    }
+
+    @Test
+    void shouldRegisterUrlSuccessfully() throws Exception {
+        String testUrl = "https://example.com/job";
+        String rawText = "Job at Example Co";
+        Map<String, String> extractedData = new HashMap<>();
+        extractedData.put("companyName", "Example Co");
+        extractedData.put("position", "Software Engineer");
+
+        Mockito.when(urlScrapingService.scrapeUrl(testUrl)).thenReturn(rawText);
+        Mockito.when(extractionEngine.extractJobPostings(rawText)).thenReturn(List.of(extractedData));
+
+        Map<String, String> request = Map.of("url", testUrl);
+        
+        mockMvc.perform(post("/api/v1/url")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.companyName").value("Example Co"));
+    }
+
+    @Test
+    void shouldReturnErrorWhenAiExtractionEmpty() throws Exception {
+        String testUrl = "https://example.com/job";
+        Mockito.when(urlScrapingService.scrapeUrl(testUrl)).thenReturn("Garbage text");
+        Mockito.when(extractionEngine.extractJobPostings(anyString())).thenReturn(Collections.emptyList());
+
+        Map<String, String> request = Map.of("url", testUrl);
+        
+        mockMvc.perform(post("/api/v1/url")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("error"))
+                .andExpect(jsonPath("$.message").value("No data extracted from URL"));
+    }
+
+    @Test
+    void shouldReturnErrorWhenUrlScrapingFails() throws Exception {
+        String testUrl = "https://invalid-url.com";
+        Mockito.when(urlScrapingService.scrapeUrl(testUrl)).thenThrow(new RuntimeException("Connection failed"));
+
+        Map<String, String> request = Map.of("url", testUrl);
+        
+        mockMvc.perform(post("/api/v1/url")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value("error"));
     }
 }
