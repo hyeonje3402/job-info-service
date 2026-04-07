@@ -44,6 +44,9 @@ class PdfAnalysisControllerTest {
     @MockBean
     private SourceRepository sourceRepository;
 
+    @MockBean
+    private com.hiresync.repositories.ExtractionLogRepository extractionLogRepository;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -76,7 +79,8 @@ class PdfAnalysisControllerTest {
                 "\"expectedSalary\": \"6000\"" +
                 "}]}";
 
-        when(pdfAnalysisService.analyzePdf(any(), any())).thenReturn(jsonResult);
+        when(pdfAnalysisService.extractTextFromPdf(any())).thenReturn("dummy raw text");
+        when(pdfAnalysisService.analyzeText(any())).thenReturn(jsonResult);
 
         JobPosting savedJob = new JobPosting();
         savedJob.setId(100L);
@@ -98,7 +102,8 @@ class PdfAnalysisControllerTest {
                 "{\"companyName\": \"Markdown Corp\", \"position\": \"Frontend Developer\"}" +
                 "\n```";
 
-        when(pdfAnalysisService.analyzePdf(any(), any())).thenReturn(markdownResult);
+        when(pdfAnalysisService.extractTextFromPdf(any())).thenReturn("dummy raw text");
+        when(pdfAnalysisService.analyzeText(any())).thenReturn(markdownResult);
 
         JobPosting savedJob = new JobPosting();
         savedJob.setCompanyName("Markdown Corp");
@@ -114,7 +119,8 @@ class PdfAnalysisControllerTest {
 
     @Test
     void shouldHandleEmptyExtraction() throws Exception {
-        when(pdfAnalysisService.analyzePdf(any(), any())).thenReturn("{}");
+        when(pdfAnalysisService.extractTextFromPdf(any())).thenReturn("dummy raw text");
+        when(pdfAnalysisService.analyzeText(any())).thenReturn("{}");
 
         mockMvc.perform(multipart("/api/v1/pdf")
                 .file(mockPdf))

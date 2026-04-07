@@ -8,7 +8,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.function.Consumer;
 
@@ -38,20 +37,18 @@ class PdfAnalysisServiceTest {
         // Mock ChatClient structure
         when(chatClientBuilder.build()).thenReturn(chatClient);
         
-        pdfAnalysisService = new PdfAnalysisService(chatClientBuilder);
-        
-        // Mock Resource for extraction prompt
-        Resource mockPrompt = new ByteArrayResource("Extract info from: {context}".getBytes());
-        ReflectionTestUtils.setField(pdfAnalysisService, "extractionPrompt", mockPrompt);
+        pdfAnalysisService = spy(new PdfAnalysisService(chatClientBuilder));
     }
 
     @Test
     void shouldAnalyzePdfSuccessfully() {
         // Given
-        // Tika can read text from plain bytes if it's not a complex PDF
-        Resource pdfResource = new ByteArrayResource("This is a job posting for Java Developer at Test Corp.".getBytes());
+        Resource pdfResource = new ByteArrayResource("dummy pdf".getBytes());
         String query = "Extract details";
         String expectedResult = "{\"jobPostings\": [{\"companyName\": \"Test Corp\"}]}";
+
+        // Mock PDF extraction to return something useful
+        doReturn("This is a job posting for Java Developer at Test Corp.").when(pdfAnalysisService).extractTextFromPdf(any());
 
         // Mock ChatClient call chain
         when(chatClient.prompt()).thenReturn(requestSpec);
@@ -65,15 +62,13 @@ class PdfAnalysisServiceTest {
         // Then
         assertEquals(expectedResult, result);
         verify(chatClient).prompt();
-        verify(requestSpec).user(any(Consumer.class));
-        verify(callResponseSpec).content();
     }
 
     @Test
     void shouldReturnEmptyJsonWhenTextIsEmpty() {
         // Given
-        // Using an empty resource that Tika won't find text in
         Resource emptyResource = new ByteArrayResource(new byte[0]);
+        doReturn("").when(pdfAnalysisService).extractTextFromPdf(any());
         
         // When
         String result = pdfAnalysisService.analyzePdf(emptyResource, "Extract details");

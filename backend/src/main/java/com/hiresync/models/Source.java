@@ -13,19 +13,13 @@ public class Source {
     private Long id;
     
     @Column(nullable = false, length = 20)
-    private String type; // pdf, url, email
+    private String type; // PDF, URL, EMAIL
+    
+    @Column(name = "reference_uri", nullable = false, length = 500)
+    private String referenceUri; // File path, URL, or Email ID
     
     @Column(nullable = false, length = 20)
-    private String status; // SUCCESS, FAILED
-    
-    @Column(name = "error_message", columnDefinition = "TEXT")
-    private String errorMessage;
-    
-    @Column(name = "extracted_data", columnDefinition = "JSON")
-    private String extractedData;
-
-    @Column(name = "raw_text", columnDefinition = "TEXT")
-    private String rawText;
+    private String status; // SUCCESS, FAILED, PROCESSING
     
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

@@ -58,13 +58,11 @@ public class WebSecurityConfig {
                 }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/v1/auth/**").permitAll()
+                        auth.requestMatchers("/api/v1/**").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                                 .requestMatchers("/", "/error", "/favicon.ico").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/jobs/**").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/v1/healthcheck").permitAll()
-                                .anyRequest().permitAll() // Temporarily permit all for debugging
+                                .anyRequest().permitAll()
                 );
 
         http.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));

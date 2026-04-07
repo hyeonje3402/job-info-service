@@ -3,6 +3,7 @@ package com.hiresync.services;
 import com.hiresync.extraction.OpenAiExtractionEngine;
 import com.hiresync.models.JobPosting;
 import com.hiresync.models.Source;
+import com.hiresync.repositories.ExtractionLogRepository;
 import com.hiresync.repositories.SourceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,9 @@ class EmailServiceTest {
 
     @Mock
     private SourceRepository sourceRepository;
+
+    @Mock
+    private ExtractionLogRepository extractionLogRepository;
 
     @InjectMocks
     private EmailService emailService;

@@ -1,5 +1,6 @@
 package com.hiresync.models;
 
+import com.hiresync.security.EmailConverter;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -12,7 +13,8 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Convert(converter = EmailConverter.class)
+    @Column(nullable = false, unique = true, length = 255) // Increased length for encrypted value
     private String email;
 
     @Column(nullable = false)
