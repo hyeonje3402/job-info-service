@@ -12,8 +12,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
-import org.springframework.ai.chat.model.ChatResponseMetadata;
+import org.springframework.ai.chat.metadata.ChatResponseMetadata;
 import org.springframework.ai.chat.metadata.Usage;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -48,9 +49,6 @@ class OpenAiExtractionEngineTest {
     private Generation generation;
 
     @Mock
-    private ChatClient.ChatClientRequestSpec.UserSpec userSpec;
-
-    @Mock
     private ObjectMapper objectMapper;
 
     @InjectMocks
@@ -78,16 +76,16 @@ class OpenAiExtractionEngineTest {
         when(callResponseSpec.chatResponse()).thenReturn(chatResponse);
         
         when(chatResponse.getResult()).thenReturn(generation);
-        when(generation.getOutput()).thenReturn(new org.springframework.ai.chat.model.AssistantMessage(aiResponseJson));
+        when(generation.getOutput()).thenReturn(new AssistantMessage(aiResponseJson));
 
         // Mock token usage
         ChatResponseMetadata metadata = mock(ChatResponseMetadata.class);
         Usage usage = mock(Usage.class);
         when(chatResponse.getMetadata()).thenReturn(metadata);
         when(metadata.getUsage()).thenReturn(usage);
-        when(usage.getPromptTokens()).thenReturn(10L);
-        when(usage.getCompletionTokens()).thenReturn(20L);
-        when(usage.getTotalTokens()).thenReturn(30L);
+        when(usage.getPromptTokens()).thenReturn(10);
+        when(usage.getCompletionTokens()).thenReturn(20);
+        when(usage.getTotalTokens()).thenReturn(30);
 
         JsonNode rootNode = mock(JsonNode.class);
         JsonNode postingsNode = mock(JsonNode.class);
@@ -116,7 +114,7 @@ class OpenAiExtractionEngineTest {
         when(requestSpec.call()).thenReturn(callResponseSpec);
         when(callResponseSpec.chatResponse()).thenReturn(chatResponse);
         when(chatResponse.getResult()).thenReturn(generation);
-        when(generation.getOutput()).thenReturn(new org.springframework.ai.chat.model.AssistantMessage(aiResponseJson));
+        when(generation.getOutput()).thenReturn(new AssistantMessage(aiResponseJson));
 
         when(objectMapper.readTree(aiResponseJson)).thenThrow(JsonProcessingException.class);
 
@@ -136,7 +134,7 @@ class OpenAiExtractionEngineTest {
         when(requestSpec.call()).thenReturn(callResponseSpec);
         when(callResponseSpec.chatResponse()).thenReturn(chatResponse);
         when(chatResponse.getResult()).thenReturn(generation);
-        when(generation.getOutput()).thenReturn(new org.springframework.ai.chat.model.AssistantMessage(aiResponseJson));
+        when(generation.getOutput()).thenReturn(new AssistantMessage(aiResponseJson));
 
         JsonNode rootNode = mock(JsonNode.class);
         when(objectMapper.readTree(aiResponseJson)).thenReturn(rootNode);

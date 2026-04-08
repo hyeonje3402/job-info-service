@@ -126,7 +126,7 @@ class PdfAnalysisControllerTest {
                 .file(mockPdf))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("error"))
-                .andExpect(jsonPath("$.data").value("No data extracted"));
+                .andExpect(jsonPath("$.message").value("No data extracted"));
     }
 
     @Test
@@ -137,6 +137,6 @@ class PdfAnalysisControllerTest {
                 .file(mockPdf))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value("error"))
-                .andExpect(jsonPath("$.data").value("Unexpected error during PDF analysis"));
+                .andExpect(jsonPath("$.message").value("Unexpected error during PDF analysis"));
     }
 }

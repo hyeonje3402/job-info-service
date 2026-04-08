@@ -13,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -98,6 +99,7 @@ class JobPostingControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void shouldUpdateJobPosting() throws Exception {
         JobPosting savedPost = jobPostingRepository.findAll().get(0);
         savedPost.setCompanyName("Updated Company");
@@ -111,6 +113,7 @@ class JobPostingControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void shouldReturn404WhenUpdatingNonExistentJob() throws Exception {
         JobPosting job = new JobPosting();
         job.setCompanyName("Ghost Company");
@@ -122,6 +125,7 @@ class JobPostingControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void shouldDeleteJobPosting() throws Exception {
         JobPosting savedPost = jobPostingRepository.findAll().get(0);
         
@@ -133,6 +137,7 @@ class JobPostingControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void shouldRegisterUrlSuccessfully() throws Exception {
         String testUrl = "https://example.com/job";
         String rawText = "Job at Example Co";
@@ -154,6 +159,7 @@ class JobPostingControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void shouldReturnErrorWhenAiExtractionEmpty() throws Exception {
         String testUrl = "https://example.com/job";
         Mockito.when(urlScrapingService.scrapeUrl(testUrl)).thenReturn("Garbage text");
@@ -170,6 +176,7 @@ class JobPostingControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void shouldReturnErrorWhenUrlScrapingFails() throws Exception {
         String testUrl = "https://invalid-url.com";
         Mockito.when(urlScrapingService.scrapeUrl(testUrl)).thenThrow(new RuntimeException("Connection failed"));

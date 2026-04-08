@@ -58,7 +58,9 @@ public class WebSecurityConfig {
                 }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/v1/**").permitAll()
+                        auth.requestMatchers(HttpMethod.PUT, "/api/v1/jobs/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/v1/jobs/**").hasRole("ADMIN")
+                                .requestMatchers("/api/v1/**").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                                 .requestMatchers("/", "/error", "/favicon.ico").permitAll()

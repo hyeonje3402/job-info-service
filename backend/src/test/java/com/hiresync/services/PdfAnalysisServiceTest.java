@@ -6,10 +6,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 
-import java.util.function.Consumer;
+import java.io.IOException;
+import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,9 +36,7 @@ class PdfAnalysisServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Mock ChatClient structure
         when(chatClientBuilder.build()).thenReturn(chatClient);
-        
         pdfAnalysisService = spy(new PdfAnalysisService(chatClientBuilder));
     }
 
@@ -44,24 +44,18 @@ class PdfAnalysisServiceTest {
     void shouldAnalyzePdfSuccessfully() {
         // Given
         Resource pdfResource = new ByteArrayResource("dummy pdf".getBytes());
-        String query = "Extract details";
         String expectedResult = "{\"jobPostings\": [{\"companyName\": \"Test Corp\"}]}";
 
-        // Mock PDF extraction to return something useful
-        doReturn("This is a job posting for Java Developer at Test Corp.").when(pdfAnalysisService).extractTextFromPdf(any());
-
-        // Mock ChatClient call chain
-        when(chatClient.prompt()).thenReturn(requestSpec);
-        when(requestSpec.user(any(Consumer.class))).thenReturn(requestSpec);
+        doReturn("Extracted text").when(pdfAnalysisService).extractTextFromPdf(any());
+        when(chatClient.prompt(any(Prompt.class))).thenReturn(requestSpec);
         when(requestSpec.call()).thenReturn(callResponseSpec);
         when(callResponseSpec.content()).thenReturn(expectedResult);
 
         // When
-        String result = pdfAnalysisService.analyzePdf(pdfResource, query);
+        String result = pdfAnalysisService.analyzePdf(pdfResource, "query");
 
         // Then
         assertEquals(expectedResult, result);
-        verify(chatClient).prompt();
     }
 
     @Test
@@ -69,13 +63,61 @@ class PdfAnalysisServiceTest {
         // Given
         Resource emptyResource = new ByteArrayResource(new byte[0]);
         doReturn("").when(pdfAnalysisService).extractTextFromPdf(any());
-        
+
         // When
-        String result = pdfAnalysisService.analyzePdf(emptyResource, "Extract details");
+        String result = pdfAnalysisService.analyzePdf(emptyResource, "query");
 
         // Then
         assertEquals("{\"jobPostings\": []}", result);
-        // Should not call AI
-        verify(chatClient, never()).prompt();
+        verify(chatClient, never()).prompt(any(Prompt.class));
+    }
+
+    @Test
+    void shouldHandleAiNullResponse() {
+        // Given
+        when(chatClient.prompt(any(Prompt.class))).thenReturn(requestSpec);
+        when(requestSpec.call()).thenReturn(callResponseSpec);
+        when(callResponseSpec.content()).thenReturn(null);
+
+        // When
+        String result = pdfAnalysisService.analyzeText("some context");
+
+        // Then
+        assertEquals("{\"jobPostings\": []}", result);
+    }
+
+    @Test
+    void shouldHandleAiException() {
+        // Given
+        when(chatClient.prompt(any(Prompt.class))).thenThrow(new RuntimeException("AI Error"));
+
+        // When
+        String result = pdfAnalysisService.analyzeText("some context");
+
+        // Then
+        assertEquals("{\"jobPostings\": []}", result);
+    }
+
+    @Test
+    void shouldReturnEmptyStringWhenPdfExtractionFails() throws IOException {
+        // Given
+        Resource faultyResource = mock(Resource.class);
+        when(faultyResource.getInputStream()).thenThrow(new IOException("Read error"));
+
+        // When
+        String result = pdfAnalysisService.extractTextFromPdf(faultyResource);
+
+        // Then
+        assertEquals("", result);
+    }
+
+    @Test
+    void shouldHandleBlankContextInAnalyzeText() {
+        // When
+        String result = pdfAnalysisService.analyzeText("   ");
+
+        // Then
+        assertEquals("{\"jobPostings\": []}", result);
     }
 }
+

@@ -112,6 +112,7 @@ public class JobPostingController {
     }
 
     @PutMapping("/jobs/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<JobPosting>> updateJob(@PathVariable Long id, @RequestBody JobPosting jobPosting) {
         return jobPostingService.update(id, jobPosting)
                 .map(updated -> ResponseEntity.ok(ApiResponse.success(updated)))
@@ -119,6 +120,7 @@ public class JobPostingController {
     }
 
     @DeleteMapping("/jobs/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteJob(@PathVariable Long id) {
         jobPostingService.deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(null));
