@@ -33,4 +33,45 @@ class UserRepositoryTest {
         assertThat(found).isPresent();
         assertThat(found.get().getName()).isEqualTo("Test User");
     }
+
+    @Test
+    void shouldSetCreatedAtAndUpdatedAtOnSave() {
+        // Given
+        User user = new User();
+        user.setEmail("lifecycle@example.com");
+        user.setPassword("password");
+        user.setName("Lifecycle User");
+        user.setRole("ADMIN");
+        user.setStatus("ACTIVE");
+
+        // When
+        User saved = userRepository.save(user);
+
+        // Then
+        assertThat(saved.getCreatedAt()).isNotNull();
+        assertThat(saved.getUpdatedAt()).isNotNull();
+    }
+
+    @Test
+    void shouldUpdateUpdatedAtOnModification() throws InterruptedException {
+        // Given
+        User user = new User();
+        user.setEmail("update@example.com");
+        user.setPassword("password");
+        user.setName("Update User");
+        user.setRole("ADMIN");
+        user.setStatus("ACTIVE");
+        User saved = userRepository.saveAndFlush(user);
+        java.time.LocalDateTime originalUpdatedAt = saved.getUpdatedAt();
+
+        // Wait a bit to ensure a different timestamp
+        Thread.sleep(10);
+
+        // When
+        saved.setName("Updated Name");
+        User updated = userRepository.saveAndFlush(saved);
+
+        // Then
+        assertThat(updated.getUpdatedAt()).isAfter(originalUpdatedAt);
+    }
 }

@@ -85,3 +85,21 @@ frontend/
 ### 5. AI 추출 품질 관리 [Ref: CHK012, CHK013]
 - **Schema Validation**: AI 응답을 Jackson을 통해 `JobPostingDTO`로 역직렬화할 때 유효성 검사를 수행함.
 - **성공 지표 측정**: 테스트 단계에서 사전 정의된 50개 이상의 채용 공고 샘플(Golden Set)을 사용하여 추출 정확도를 자동 측정하는 통합 테스트 코드를 작성함.
+
+## 백엔드 통합 테스트 가이드라인
+
+백엔드 API의 안정성을 보장하기 위해 다음과 같은 통합 테스트 원칙을 엄격하게 준수합니다.
+
+1. **테스트 어노테이션 및 도구**:
+    - `@SpringBootTest`와 `@AutoConfigureMockMvc`를 사용하여 전체 애플리케이션 컨텍스트와 MockMvc 설정을 로드합니다.
+    - 외부 API 호출(Controller 엔드포인트) 시뮬레이션에는 반드시 `MockMvc`를 사용합니다.
+2. **데이터베이스 관리**:
+    - 각 테스트 메서드에 `@Transactional`을 적용하여 테스트 실행 후 데이터베이스 변경 사항이 자동으로 롤백되도록 초기화합니다.
+3. **검증 방식**:
+    - JSON 응답 데이터의 검증은 `JsonPath`를 사용하여 필드 값과 구조를 명확하게 확인합니다.
+4. **의존성 주입**:
+    - 테스트 클래스 내의 의존성 주입은 `@Autowired`를 사용하거나 생성자 주입 방식을 따릅니다.
+5. **테스트 메서드 명명 규칙**:
+    - 테스트 메서드 이름은 **`[Behavior]_[Condition]_[ExpectedResult]`** 형태의 영문으로 작성하여 테스트의 의도와 기대를 명확히 드러냅니다.
+      *(예: `getAllJobs_WhenJobsExist_ReturnsPageOfJobs`, `registerUrl_WithInvalidUrl_ReturnsError`)*
+

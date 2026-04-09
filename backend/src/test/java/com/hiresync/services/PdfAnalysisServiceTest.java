@@ -1,5 +1,10 @@
 package com.hiresync.services;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,7 +16,6 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -112,12 +116,66 @@ class PdfAnalysisServiceTest {
     }
 
     @Test
-    void shouldHandleBlankContextInAnalyzeText() {
+    void shouldExtractTextFromValidPdf() throws IOException {
+        // Given: Create a simple PDF in memory
+        byte[] pdfBytes;
+        try (PDDocument document = new PDDocument()) {
+            PDPage page = new PDPage();
+            document.addPage(page);
+            try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+                contentStream.beginText();
+                contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+                contentStream.newLineAtOffset(100, 700);
+                contentStream.showText("  Hello   World  "); // Contains multiple spaces and leading/trailing spaces
+                contentStream.endText();
+            }
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            document.save(baos);
+            pdfBytes = baos.toByteArray();
+        }
+
+        Resource pdfResource = new ByteArrayResource(pdfBytes);
+
         // When
-        String result = pdfAnalysisService.analyzeText("   ");
+        String result = pdfAnalysisService.extractTextFromPdf(pdfResource);
+
+        // Then: Should be cleaned (single space, trimmed)
+        assertEquals("Hello World", result);
+    }
+
+    @Test
+    void shouldHandleInvalidPdfFormat() {
+        // Given: Invalid PDF bytes
+        Resource invalidPdf = new ByteArrayResource("not a pdf".getBytes());
+
+        // When
+        String result = pdfAnalysisService.extractTextFromPdf(invalidPdf);
+
+        // Then
+        assertEquals("", result);
+    }
+
+    @Test
+    void shouldHandleAiEmptyResponse() {
+        // Given
+        when(chatClient.prompt(any(Prompt.class))).thenReturn(requestSpec);
+        when(requestSpec.call()).thenReturn(callResponseSpec);
+        when(callResponseSpec.content()).thenReturn("   ");
+
+        // When
+        String result = pdfAnalysisService.analyzeText("some context");
 
         // Then
         assertEquals("{\"jobPostings\": []}", result);
+    }
+
+    @Test
+    void shouldReturnEmptyStringWhenInputIsNullInExtractText() {
+        // When
+        String result = pdfAnalysisService.extractTextFromPdf(null);
+
+        // Then
+        assertEquals("", result);
     }
 }
 

@@ -16,6 +16,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class JobPostingControllerTest {
 
     @Autowired
@@ -48,18 +51,52 @@ class JobPostingControllerTest {
     @BeforeEach
     void setUp() {
         jobPostingRepository.deleteAll();
-        
+    }
+
+    private JobPosting createMockJobPosting(String companyName, String position) {
         JobPosting post = new JobPosting();
-        post.setCompanyName("Test Company");
+        post.setCompanyName(companyName);
         post.setLocation("Seoul");
-        post.setPosition("Backend Developer");
+        post.setPosition(position);
         post.setRequirements("Java, Spring");
         post.setOpeningDate(LocalDate.now());
         post.setClosingDate(LocalDate.now().plusMonths(1));
         post.setApplicationMethod("Email");
         post.setExpectedSalary("5000");
         post.setStatus("APPROVED");
-        jobPostingRepository.save(post);
+        return post;
+    }
+
+    @Test
+    void getAllJobs_WhenJobsExist_ReturnsPageOfJobs() throws Exception {
+        // Given
+        jobPostingRepository.save(createMockJobPosting("Company A", "Backend"));
+        jobPostingRepository.save(createMockJobPosting("Company B", "Frontend"));
+
+        // When
+        mockMvc.perform(get("/api/v1/jobs")
+                .contentType(MediaType.APPLICATION_JSON))
+                // Then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.totalElements").value(2))
+                .andExpect(jsonPath("$.data.content[0].companyName").value("Company A"))
+                .andExpect(jsonPath("$.data.content[1].companyName").value("Company B"));
+    }
+
+    @Test
+    void getAllJobs_WhenNoJobsExist_ReturnsEmptyPage() throws Exception {
+        // Given (Empty repository due to setUp and @Transactional)
+
+        // When
+        mockMvc.perform(get("/api/v1/jobs")
+                .contentType(MediaType.APPLICATION_JSON))
+                // Then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.content").isEmpty())
+                .andExpect(jsonPath("$.data.totalElements").value(0));
     }
 
     @Test
