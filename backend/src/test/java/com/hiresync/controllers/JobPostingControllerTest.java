@@ -101,8 +101,13 @@ class JobPostingControllerTest {
 
     @Test
     void shouldReturnJobPostingsList() throws Exception {
+        // Given
+        jobPostingRepository.save(createMockJobPosting("Test Company", "Backend Developer"));
+
+        // When
         mockMvc.perform(get("/api/v1/jobs")
                 .contentType(MediaType.APPLICATION_JSON))
+                // Then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.content").isArray())
@@ -111,10 +116,13 @@ class JobPostingControllerTest {
 
     @Test
     void shouldReturnJobPostingDetail() throws Exception {
-        JobPosting savedPost = jobPostingRepository.findAll().get(0);
+        // Given
+        JobPosting saved = jobPostingRepository.save(createMockJobPosting("Test Company", "Backend Developer"));
         
-        mockMvc.perform(get("/api/v1/jobs/" + savedPost.getId())
+        // When
+        mockMvc.perform(get("/api/v1/jobs/" + saved.getId())
                 .contentType(MediaType.APPLICATION_JSON))
+                // Then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.companyName").value("Test Company"))
@@ -138,12 +146,15 @@ class JobPostingControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void shouldUpdateJobPosting() throws Exception {
-        JobPosting savedPost = jobPostingRepository.findAll().get(0);
+        // Given
+        JobPosting savedPost = jobPostingRepository.save(createMockJobPosting("Test Company", "Backend Developer"));
         savedPost.setCompanyName("Updated Company");
         
+        // When
         mockMvc.perform(put("/api/v1/jobs/" + savedPost.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(savedPost)))
+                // Then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.companyName").value("Updated Company"));
@@ -164,9 +175,12 @@ class JobPostingControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void shouldDeleteJobPosting() throws Exception {
-        JobPosting savedPost = jobPostingRepository.findAll().get(0);
+        // Given
+        JobPosting savedPost = jobPostingRepository.save(createMockJobPosting("Test Company", "Backend Developer"));
         
+        // When
         mockMvc.perform(delete("/api/v1/jobs/" + savedPost.getId()))
+                // Then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"));
         
