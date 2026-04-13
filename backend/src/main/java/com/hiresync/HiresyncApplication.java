@@ -1,8 +1,12 @@
 package com.hiresync;
 
+import com.hiresync.models.User;
+import com.hiresync.services.UserService;
 import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class HiresyncApplication {
@@ -29,5 +33,19 @@ public class HiresyncApplication {
         });
 
         SpringApplication.run(HiresyncApplication.class, args);
+    }
+
+    @Bean
+    public CommandLineRunner initData(UserService userService) {
+        return args -> {
+            if (userService.findByEmail("admin@hiresync.com").isEmpty()) {
+                User admin = new User();
+                admin.setEmail("admin@hiresync.com");
+                admin.setPassword("admin1234");
+                admin.setName("Admin User");
+                admin.setRole("ADMIN");
+                userService.registerUser(admin);
+            }
+        };
     }
 }

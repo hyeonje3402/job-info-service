@@ -1,6 +1,7 @@
 package com.hiresync.controllers;
 
 import com.hiresync.models.ApiResponse;
+import com.hiresync.models.LoginRequest;
 import com.hiresync.models.User;
 import com.hiresync.security.JwtUtils;
 import com.hiresync.services.UserService;
@@ -13,8 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -32,12 +31,12 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody Map<String, String> loginRequest) {
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            loginRequest.get("email"),
-                            loginRequest.get("password")
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()
                     )
             );
 
