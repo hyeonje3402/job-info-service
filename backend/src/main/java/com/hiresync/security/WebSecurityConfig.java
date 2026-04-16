@@ -54,8 +54,8 @@ public class WebSecurityConfig {
                 }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers(HttpMethod.PUT, "/api/v1/jobs/**").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/v1/jobs/**").hasRole("ADMIN")
+                        auth.requestMatchers(HttpMethod.PUT, "/api/v1/jobs/**").hasAuthority("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/v1/jobs/**").hasAuthority("ADMIN")
                                 .requestMatchers("/api/v1/pdf/**").authenticated()
                                 .requestMatchers("/api/v1/**").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()

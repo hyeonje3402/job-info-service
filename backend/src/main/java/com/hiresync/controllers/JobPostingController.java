@@ -4,6 +4,7 @@ import com.hiresync.extraction.OpenAiExtractionEngine;
 import com.hiresync.models.ApiResponse;
 import com.hiresync.models.ExtractionLog;
 import com.hiresync.models.JobPosting;
+import com.hiresync.models.JobResponse;
 import com.hiresync.models.Source;
 import com.hiresync.repositories.ExtractionLogRepository;
 import com.hiresync.repositories.SourceRepository;
@@ -13,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -39,15 +40,19 @@ public class JobPostingController {
     }
 
     @GetMapping("/jobs")
-    public ResponseEntity<ApiResponse<Page<JobPosting>>> getAllJobs(Pageable pageable) {
+    public ResponseEntity<Map<String, Object>> getAllJobs(Pageable pageable) {
         Page<JobPosting> jobs = jobPostingService.findAll(pageable);
-        return ResponseEntity.ok(ApiResponse.success(jobs));
+        List<JobResponse> dtoList = jobs.getContent().stream()
+                .map(JobResponse::fromEntity)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(Map.of("data", Map.of("content", dtoList)));
     }
 
     @GetMapping("/jobs/{id}")
-    public ResponseEntity<ApiResponse<JobPosting>> getJobById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<JobResponse>> getJobById(@PathVariable Long id) {
         return jobPostingService.findById(id)
-                .map(job -> ResponseEntity.ok(ApiResponse.success(job)))
+                .map(job -> ResponseEntity.ok(ApiResponse.success(JobResponse.fromEntity(job))))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -79,7 +84,7 @@ public class JobPostingController {
             saveExtractionLog(source, "gpt-4o", extractedData.toString(), startTime, null);
 
             // 4. JobPosting 저장 (첫 번째 항목 반환)
-            JobPosting firstSaved = null;
+            JobResponse firstSavedDto = null;
             for (Map<String, String> data : extractedData) {
                 JobPosting posting = new JobPosting();
                 posting.setCompanyName(data.getOrDefault("companyName", "Unknown"));
@@ -97,11 +102,11 @@ public class JobPostingController {
                 posting.setSource(source);
 
                 JobPosting saved = jobPostingService.save(posting);
-                if (firstSaved == null) firstSaved = saved;
+                if (firstSavedDto == null) firstSavedDto = JobResponse.fromEntity(saved);
             }
 
             updateSource(source, "SUCCESS");
-            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(firstSaved));
+            return ResponseEntity.ok(ApiResponse.success(firstSavedDto));
 
         } catch (Exception e) {
             log.error("Error during URL registration: {}", e.getMessage(), e);
@@ -112,15 +117,15 @@ public class JobPostingController {
     }
 
     @PutMapping("/jobs/{id}")
-    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<JobPosting>> updateJob(@PathVariable Long id, @RequestBody JobPosting jobPosting) {
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<ApiResponse<JobResponse>> updateJob(@PathVariable Long id, @RequestBody JobPosting jobPosting) {
         return jobPostingService.update(id, jobPosting)
-                .map(updated -> ResponseEntity.ok(ApiResponse.success(updated)))
+                .map(updated -> ResponseEntity.ok(ApiResponse.success(JobResponse.fromEntity(updated))))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/jobs/{id}")
-    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteJob(@PathVariable Long id) {
         jobPostingService.deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(null));

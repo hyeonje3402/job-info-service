@@ -1,5 +1,6 @@
 package com.hiresync.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDate;
@@ -40,6 +41,7 @@ public class JobPosting {
     @Column(name = "status", length = 20, nullable = false)
     private String status; // PENDING, APPROVED, EXPIRED
     
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_id")
     private Source source;

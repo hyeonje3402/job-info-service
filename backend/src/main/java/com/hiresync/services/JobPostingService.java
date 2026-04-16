@@ -32,16 +32,16 @@ public class JobPostingService {
 
     public Optional<JobPosting> update(Long id, JobPosting updatedJobPosting) {
         return jobPostingRepository.findById(id).map(jobPosting -> {
-            jobPosting.setCompanyName(updatedJobPosting.getCompanyName());
-            jobPosting.setLocation(updatedJobPosting.getLocation());
-            jobPosting.setPosition(updatedJobPosting.getPosition());
-            jobPosting.setRequirements(updatedJobPosting.getRequirements());
-            jobPosting.setOpeningDate(updatedJobPosting.getOpeningDate());
-            jobPosting.setClosingDate(updatedJobPosting.getClosingDate());
-            jobPosting.setApplicationMethod(updatedJobPosting.getApplicationMethod());
-            jobPosting.setExpectedSalary(updatedJobPosting.getExpectedSalary());
-            jobPosting.setStatus(updatedJobPosting.getStatus());
-            jobPosting.setSource(updatedJobPosting.getSource());
+            if (updatedJobPosting.getCompanyName() != null) jobPosting.setCompanyName(updatedJobPosting.getCompanyName());
+            if (updatedJobPosting.getLocation() != null) jobPosting.setLocation(updatedJobPosting.getLocation());
+            if (updatedJobPosting.getPosition() != null) jobPosting.setPosition(updatedJobPosting.getPosition());
+            if (updatedJobPosting.getRequirements() != null) jobPosting.setRequirements(updatedJobPosting.getRequirements());
+            if (updatedJobPosting.getOpeningDate() != null) jobPosting.setOpeningDate(updatedJobPosting.getOpeningDate());
+            if (updatedJobPosting.getClosingDate() != null) jobPosting.setClosingDate(updatedJobPosting.getClosingDate());
+            if (updatedJobPosting.getApplicationMethod() != null) jobPosting.setApplicationMethod(updatedJobPosting.getApplicationMethod());
+            if (updatedJobPosting.getExpectedSalary() != null) jobPosting.setExpectedSalary(updatedJobPosting.getExpectedSalary());
+            if (updatedJobPosting.getStatus() != null) jobPosting.setStatus(updatedJobPosting.getStatus());
+            if (updatedJobPosting.getSource() != null) jobPosting.setSource(updatedJobPosting.getSource());
             return jobPostingRepository.save(jobPosting);
         });
     }

@@ -110,7 +110,7 @@ public class PdfAnalysisController {
             if (firstSaved != null) {
                 updateSource(source, "SUCCESS");
                 saveExtractionLog(source, "gpt-4o", aiResult, startTime, null);
-                return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(firstSaved));
+                return ResponseEntity.ok(ApiResponse.success(firstSaved));
             } else {
                 updateSource(source, "FAILED");
                 saveExtractionLog(source, "gpt-4o", aiResult, startTime, "Database save failure");
