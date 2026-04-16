@@ -38,8 +38,8 @@ class AuthControllerTest {
     void setUp() {
         userRepository.deleteAll();
         User user = new User();
-        user.setEmail("admin@hiresync.com");
-        user.setPassword(passwordEncoder.encode("password123"));
+        user.setEmail("admin@example.com");
+        user.setPassword(passwordEncoder.encode("1234"));
         user.setName("Admin User");
         user.setRole("ADMIN");
         user.setStatus("ACTIVE");
@@ -49,7 +49,7 @@ class AuthControllerTest {
     @Test
     void shouldRegisterUserSuccessfully() throws Exception {
         User newUser = new User();
-        newUser.setEmail("new@hiresync.com");
+        newUser.setEmail("new@example.com");
         newUser.setPassword("password123");
         newUser.setName("New User");
 
@@ -58,14 +58,14 @@ class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(newUser)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
-                .andExpect(jsonPath("$.data.email").value("new@hiresync.com"));
+                .andExpect(jsonPath("$.data.email").value("new@example.com"));
     }
 
     @Test
     void shouldLoginSuccessfullyWithValidCredentials() throws Exception {
         Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("email", "admin@hiresync.com");
-        loginRequest.put("password", "password123");
+        loginRequest.put("email", "admin@example.com");
+        loginRequest.put("password", "1234");
 
         mockMvc.perform(post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -78,7 +78,7 @@ class AuthControllerTest {
     @Test
     void shouldFailLoginWithInvalidCredentials() throws Exception {
         Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("email", "admin@hiresync.com");
+        loginRequest.put("email", "admin@example.com");
         loginRequest.put("password", "wrongpassword");
 
         mockMvc.perform(post("/api/v1/auth/login")

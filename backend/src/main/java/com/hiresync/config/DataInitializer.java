@@ -14,10 +14,10 @@ public class DataInitializer {
     @Bean
     public CommandLineRunner initData(UserService userService) {
         return args -> {
-            if (userService.findByEmail("admin@hiresync.com").isEmpty()) {
+            if (userService.findByEmail("admin@example.com").isEmpty()) {
                 User admin = new User();
-                admin.setEmail("admin@hiresync.com");
-                admin.setPassword("admin1234");
+                admin.setEmail("admin@example.com");
+                admin.setPassword("1234");
                 admin.setName("Admin User");
                 admin.setRole("ADMIN");
                 userService.registerUser(admin);
