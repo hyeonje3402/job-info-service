@@ -18,3 +18,4 @@
 
 ### Changed
 - `.specify/memory/constitution.md`: 개발 워크플로우 및 거버넌스 섹션에 변경 이력 관리 원칙 추가.
+
