@@ -10,7 +10,7 @@ HireSync 채용 정보 서비스는 구직자에게 통합된 채용 정보를 �
 
 **Language/Version**: Java 21, JavaScript ES6+  
 **Primary Dependencies**: Spring Boot 3.5.x, Gradle 8+, React 19, Spring AI (OpenAI API), JSoup 1.17.x, SpringDoc OpenAPI 2.x  
-**Storage**: PostgreSQL (개인정보 암호화 및 영속성 보장), H2 (테스트용)  
+**Storage**: PostgreSQL (pgcrypto를 활용한 개인정보 암호화), H2 (테스트용)  
 **Testing**: JUnit 5, Mockito, AssertJ (Backend) / Jest, React Testing Library (Frontend)  
 **Target Platform**: Linux Server (Docker/AWS) 
 **Project Type**: Web Application (Spring Boot REST API + React SPA)  
@@ -64,33 +64,42 @@ frontend/
 
 ## Strategy & Research Integration
 
-### 1. 기술 스택 전환 (Migration)
-- **Java 21**: Virtual Threads를 활용하여 동시성 처리 성능 향상 (특히 URL 스크래핑 시 이점).
-- **Gradle 8+**: Maven(`pom.xml`)에서 Gradle로 전환하여 빌드 속도 개선 및 유연한 빌드 스크립트 작성.
-- **Spring Boot 3.5.x**: 최신 기능을 활용하여 Spring AI와의 호환성 극대화.
+### 1. 기술 스택 및 빌드 환경 전환 (Migration) [Ref: CHK009]
+- **Gradle 8.x**: `settings.gradle`을 통해 백엔드와 프론트엔드 빌드 수명 주기를 통합 관리함. 프론트엔드 빌드 결과물(dist)을 백엔드 `resources/static`으로 자동 복사하는 Task를 구성함.
+- **Java 21 Virtual Threads**: `spring.threads.virtual.enabled=true` 설정을 활성화함. 외부 URL 스크래핑 및 OpenAI API 호출과 같은 블로킹 I/O 작업 시 가상 스레드를 할당하여 처리량을 극대화함. 단, `synchronized` 블록 내에서의 블로킹 작업이 스레드 고정(Pinning) 현상을 유발하지 않도록 `ReentrantLock`으로 대체하거나 코드 구조를 최적화함. [Ref: CHK010]
 
 ### 2. 채용 정보 자동 추출 엔진 (OpenAI API)
-- **PDF 분석**: 외부 라이브러리(PDFBox 등)를 통한 로컬 파싱을 배제하고, OpenAI의 Document 분석 기능(Spring AI 통합)을 사용하여 PDF 바이너리를 직접 전달하여 구조화된 JSON(회사명, 급여 등)으로 추출.
-- **URL 분석**: JSoup으로 HTML을 파싱하고, 핵심 텍스트를 추출하여 AI가 컨텍스트를 파악하도록 설계.
-- **구조화**: OpenAI의 JSON Mode 또는 Function Calling을 활용하여 `JobPosting` 엔티티 형식에 맞는 정확한 데이터 확보.
+- **PDF/이미지 분석**: Spring AI를 사용하여 OpenAI의 `gpt-4o` 모델(Vision 지원)에 파일을 직접 전달함. 텍스트 추출이 어려운 이미지는 시각적 분석을 병행함.
+- **대용량 문서 분할 (Chunking)**: 토큰 제한을 초과하는 문서는 문장/단락 단위로 분할하여 핵심 섹션(모집요강, 자격요건 등)을 식별한 후 개별 분석함. 최종적으로 각 청크의 결과를 병합하여 하나의 `JobPosting` 객체로 구조화함. [Ref: CHK016, CHK017]
+- **URL 분석**: JSoup으로 HTML 본문을 파싱하고 불필요한 태그(scripts, ads)를 제거한 순수 텍스트를 AI에 전달함.
 
-### 3. 이메일 처리 로직
-- Spring Mail 수신 기능을 연동하여 "[연암취업정보]" 제목 필터링.
-- 본문에 포함된 URL이나 텍스트를 추출 엔진으로 전달하여 자동 등록 프로세스 가동.
+### 3. 데이터 보안 및 정합성 [Ref: CHK015]
+- **개인정보 암호화**: PostgreSQL의 `pgcrypto` 확장 기능을 사용하여 관리자 계정 정보 및 민감한 추출 로그를 DB 수준에서 암호화함. Spring Data JPA의 `AttributeConverter`를 활용하여 애플리케이션 계층에서의 투명한 암복호화를 구현함.
+- **중복 검증 로직**: `JobPostingService`에서 저장 전 (회사명, 직무, 마감일) 해시값을 비교하여 중복 여부를 판단함.
 
-### 4. 프론트엔드 (React 19)
-- React 19의 새로운 기능(Actions, useOptimistic 등)을 활용하여 관리자 페이지의 CRUD 반응성 향상.
-- TypeScript를 통한 타입 안정성 확보.
+### 4. 프론트엔드 UX 혁신 (React 19) [Ref: CHK011]
+- **Actions API**: 관리자 폼 제출 시 `useActionState`를 사용하여 로딩 및 에러 상태를 선언적으로 관리함.
+- **Optimistic UI**: `useOptimistic`을 적용하여 채용 공고 삭제나 상태 변경 시 서버 응답 전 화면에 즉시 반영하여 체감 속도를 높임.
+- **Server Components**: 목록 조회와 같이 정적인 데이터는 서버 컴포넌트 활용을 검토하여 초기 로딩 성능 최적화.
 
-## Data Model (Summary)
+### 5. AI 추출 품질 관리 [Ref: CHK012, CHK013]
+- **Schema Validation**: AI 응답을 Jackson을 통해 `JobPostingDTO`로 역직렬화할 때 유효성 검사를 수행함.
+- **성공 지표 측정**: 테스트 단계에서 사전 정의된 50개 이상의 채용 공고 샘플(Golden Set)을 사용하여 추출 정확도를 자동 측정하는 통합 테스트 코드를 작성함.
 
-- **JobPosting**: id(Long), companyName(String), location(String), field(String), conditions(Text), deadline(String), method(Text), expectedSalary(String), source(Enum: PDF, URL, EMAIL), createdAt(DateTime), updatedAt(DateTime)
-- **ExtractionLog**: id, sourceId, sourceType, status(SUCCESS/FAIL), rawText, extractedData, errorMessage, processedAt
+## 백엔드 통합 테스트 가이드라인
 
-## API Contracts (Summary)
+백엔드 API의 안정성을 보장하기 위해 다음과 같은 통합 테스트 원칙을 엄격하게 준수합니다.
 
-- `GET /api/job-postings`: 채용 목록 조회
-- `GET /api/job-postings/{id}`: 상세 정보 조회
-- `POST /api/admin/job-postings/upload-pdf`: PDF 업로드 및 자동 추출
-- `POST /api/admin/job-postings/register-url`: URL 등록 및 자동 추출
-- `PUT/DELETE /api/admin/job-postings/{id}`: 관리자 수정/삭제
+1. **테스트 어노테이션 및 도구**:
+    - `@SpringBootTest`와 `@AutoConfigureMockMvc`를 사용하여 전체 애플리케이션 컨텍스트와 MockMvc 설정을 로드합니다.
+    - 외부 API 호출(Controller 엔드포인트) 시뮬레이션에는 반드시 `MockMvc`를 사용합니다.
+2. **데이터베이스 관리**:
+    - 각 테스트 메서드에 `@Transactional`을 적용하여 테스트 실행 후 데이터베이스 변경 사항이 자동으로 롤백되도록 초기화합니다.
+3. **검증 방식**:
+    - JSON 응답 데이터의 검증은 `JsonPath`를 사용하여 필드 값과 구조를 명확하게 확인합니다.
+4. **의존성 주입**:
+    - 테스트 클래스 내의 의존성 주입은 `@Autowired`를 사용하거나 생성자 주입 방식을 따릅니다.
+5. **테스트 메서드 명명 규칙**:
+    - 테스트 메서드 이름은 **`[Behavior]_[Condition]_[ExpectedResult]`** 형태의 영문으로 작성하여 테스트의 의도와 기대를 명확히 드러냅니다.
+      *(예: `getAllJobs_WhenJobsExist_ReturnsPageOfJobs`, `registerUrl_WithInvalidUrl_ReturnsError`)*
+

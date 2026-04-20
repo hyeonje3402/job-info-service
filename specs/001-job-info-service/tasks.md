@@ -9,11 +9,11 @@
 
 **Purpose**: Maven에서 Gradle 8+ 및 Java 21 환경으로 전환 (PDFBox 제거)
 
-- [ ] T001 Initialize Gradle 8+ wrapper and structure in repository root
-- [ ] T002 Migrate `pom.xml` dependencies to `build.gradle` (Spring Boot 3.5.x, Java 21) 및 PDFBox 의존성 제거
-- [ ] T003 Configure Java 21 toolchain and Gradle build properties in `backend/build.gradle`
-- [ ] T004 [P] Setup React 19 project structure in `frontend/` and update `package.json`
-- [ ] T005 [P] Configure ESLint and Prettier for Java and JavaScript in project root
+- [X] T001 Initialize Gradle 8+ wrapper and structure in repository root
+- [X] T002 Migrate `pom.xml` dependencies to `build.gradle` (Spring Boot 3.5.x, Java 21) 및 PDFBox 의존성 제거
+- [X] T003 Configure Java 21 toolchain and Gradle build properties in `backend/build.gradle`
+- [X] T004 [P] Setup React 19 project structure in `frontend/` and update `package.json`
+- [X] T005 [P] Configure ESLint and Prettier for Java and JavaScript in project root
 
 ---
 
@@ -21,12 +21,12 @@
 
 **Purpose**: 모든 사용자 스토리에 필요한 핵심 인프라 구축
 
-- [ ] T006 Setup PostgreSQL database schema for `JobPosting` and `ExtractionLog` in `backend/src/main/resources/schema.sql`
-- [ ] T007 Implement Base Entity and JPA repositories in `backend/src/main/java/com/hiresync/repositories/`
-- [ ] T008 [P] Configure Spring Security with JWT (Java 21 compatible) in `backend/src/main/java/com/hiresync/security/`
-- [ ] T009 [P] Setup Spring AI with OpenAI API key and basic chat client configuration in `backend/src/main/resources/application.properties`
-- [ ] T010 Configure SpringDoc OpenAPI 2.x for API documentation (Swagger UI) in `backend/src/main/java/com/hiresync/config/`
-- [ ] T011 Setup global exception handling and logging infrastructure in `backend/src/main/java/com/hiresync/exception/`
+- [X] T006 Setup PostgreSQL database schema for `JobPosting` and `ExtractionLog` in `backend/src/main/resources/schema.sql`
+- [X] T007 Implement Base Entity and JPA repositories in `backend/src/main/java/com/hiresync/repositories/`
+- [X] T008 [P] Configure Spring Security with JWT (Java 21 compatible) in `backend/src/main/java/com/hiresync/security/`
+- [X] T009 [P] Setup Spring AI with OpenAI API key and basic chat client configuration in `backend/src/main/resources/application.properties`
+- [X] T010 Configure SpringDoc OpenAPI 2.x for API documentation (Swagger UI) in `backend/src/main/java/com/hiresync/config/`
+- [X] T011 Setup global exception handling and logging infrastructure in `backend/src/main/java/com/hiresync/exception/`
 
 **Checkpoint**: 인프라 준비 완료 - 각 사용자 스토리별 병렬 개발 가능
 
@@ -40,15 +40,15 @@
 
 ### Tests for User Story 1
 
-- [ ] T012 [P] [US1] Create integration test for `GET /api/job-postings` in `backend/src/test/java/com/hiresync/controllers/JobPostingControllerTest.java`
-- [ ] T013 [P] [US1] Create unit test for `JobPostingService.findAll()` in `backend/src/test/java/com/hiresync/services/JobPostingServiceTest.java`
+- [X] T012 [P] [US1] Create integration test for `GET /api/job-postings` in `backend/src/test/java/com/hiresync/controllers/JobPostingControllerTest.java`
+- [X] T013 [P] [US1] Create unit test for `JobPostingService.findAll()` in `backend/src/test/java/com/hiresync/services/JobPostingServiceTest.java`
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Implement `JobPosting` entity and DTOs in `backend/src/main/java/com/hiresync/models/`
-- [ ] T015 [US1] Implement `JobPostingController.getAll()` and `getById()` in `backend/src/main/java/com/hiresync/controllers/JobPostingController.java`
-- [ ] T016 [US1] Create `JobListPage` and `JobDetailPage` in `frontend/src/pages/` (React 19)
-- [ ] T017 [US1] Add basic styling and responsive layout for job listings in `frontend/src/components/`
+- [X] T014 [US1] Implement `JobPosting` entity and DTOs in `backend/src/main/java/com/hiresync/models/`
+- [X] T015 [US1] Implement `JobPostingController.getAll()` and `getById()` in `backend/src/main/java/com/hiresync/controllers/JobPostingController.java`
+- [X] T016 [US1] Create `JobListPage` and `JobDetailPage` in `frontend/src/pages/` (React 19)
+- [X] T017 [US1] Add basic styling and responsive layout for job listings in `frontend/src/components/`
 
 **Checkpoint**: 구직자용 기본 조회 기능 완성 및 독립 테스트 통과
 
@@ -62,19 +62,19 @@
 
 ### Tests for User Story 2
 
-- [ ] T018 [P] [US2] Create integration test for PDF upload and AI extraction mock in `backend/src/test/java/com/hiresync/controllers/PdfAnalysisControllerTest.java`
-- [ ] T019 [P] [US2] Create unit test for URL scraping with JSoup in `backend/src/test/java/com/hiresync/services/UrlScrapingServiceTest.java`
+- [X] T018 [P] [US2] Create integration test for PDF upload and AI extraction mock in `backend/src/test/java/com/hiresync/controllers/PdfAnalysisControllerTest.java`
+- [X] T019 [P] [US2] Create unit test for URL scraping with JSoup in `backend/src/test/java/com/hiresync/services/UrlScrapingServiceTest.java`
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Implement OpenAI Document Analysis service for PDF files (direct binary upload via Spring AI) in `backend/src/main/java/com/hiresync/services/PdfAnalysisService.java`
-- [ ] T021 [US2] Implement OpenAI extraction engine for URL/Email content structuring in `backend/src/main/java/com/hiresync/extraction/OpenAiExtractionEngine.java`
-- [ ] T022 [US2] Implement URL scraping service using JSoup 1.17.x in `backend/src/main/java/com/hiresync/services/UrlScrapingService.java`
-- [ ] T023 [US2] Implement security filtering and sanitization (SR-004) using JSoup Cleaner in `backend/src/main/java/com/hiresync/services/UrlScrapingService.java`
-- [ ] T024 [US2] Implement validation for PDF file size and page limits in `backend/src/main/java/com/hiresync/services/PdfAnalysisService.java`
-- [ ] T024 [US2] Implement retry logic and response consistency for AI extraction in `backend/src/main/java/com/hiresync/extraction/`
-- [ ] T025 [US2] Create admin upload UI in `frontend/src/pages/admin/` using React 19 Actions
-- [ ] T026 [US2] Implement automatic registration logic (Extract -> Save -> Publish) in `backend/src/main/java/com/hiresync/services/JobPostingService.java`
+- [X] T020 [US2] Implement OpenAI Document Analysis service for PDF files (direct binary upload via Spring AI) in `backend/src/main/java/com/hiresync/services/PdfAnalysisService.java`
+- [X] T021 [US2] Implement OpenAI extraction engine for URL/Email content structuring in `backend/src/main/java/com/hiresync/extraction/OpenAiExtractionEngine.java`
+- [X] T022 [US2] Implement URL scraping service using JSoup 1.17.x in `backend/src/main/java/com/hiresync/services/UrlScrapingService.java`
+- [X] T023 [US2] Implement security filtering and sanitization (SR-004) using JSoup Cleaner in `backend/src/main/java/com/hiresync/services/UrlScrapingService.java`
+- [X] T024 [US2] Implement validation for PDF file size and page limits in `backend/src/main/java/com/hiresync/services/PdfAnalysisService.java`
+- [X] T024 [US2] Implement retry logic and response consistency for AI extraction in `backend/src/main/java/com/hiresync/extraction/`
+- [X] T025 [US2] Create admin upload UI in `frontend/src/pages/admin/` using React 19 Actions
+- [X] T026 [US2] Implement automatic registration logic (Extract -> Save -> Publish) in `backend/src/main/java/com/hiresync/services/JobPostingService.java`
 
 ---
 
@@ -86,14 +86,14 @@
 
 ### Tests for User Story 3
 
-- [ ] T027 [P] [US3] Create unit test for email subject filtering logic in `backend/src/test/java/com/hiresync/services/EmailServiceTest.java`
-- [ ] T028 [US3] Integration test for email-to-extraction-engine flow in `backend/src/test/java/com/hiresync/integration/EmailIntegrationTest.java`
+- [X] T027 [P] [US3] Create unit test for email subject filtering logic in `backend/src/test/java/com/hiresync/services/EmailServiceTest.java`
+- [X] T028 [US3] Integration test for email-to-extraction-engine flow in `backend/src/test/java/com/hiresync/integration/EmailIntegrationTest.java`
 
 ### Implementation for User Story 3
 
-- [ ] T029 [US3] Configure Spring Mail for IMAP/POP3 receiving in `backend/src/main/java/com/hiresync/config/MailConfig.java`
-- [ ] T030 [US3] Implement email body parsing and URL detection logic in `backend/src/main/java/com/hiresync/services/EmailService.java`
-- [ ] T031 [US3] Integrate email service with Phase 4's extraction engine in `backend/src/main/java/com/hiresync/services/EmailService.java`
+- [X] T029 [US3] Configure Spring Mail for IMAP/POP3 receiving in `backend/src/main/java/com/hiresync/config/MailConfig.java`
+- [X] T030 [US3] Implement email body parsing and URL detection logic in `backend/src/main/java/com/hiresync/services/EmailService.java`
+- [X] T031 [US3] Integrate email service with Phase 4's extraction engine in `backend/src/main/java/com/hiresync/services/EmailService.java`
 
 ---
 
@@ -103,23 +103,23 @@
 
 ### Tests for User Story 4
 
-- [ ] T032 [P] [US4] Integration test for `PUT` and `DELETE` endpoints in `backend/src/test/java/com/hiresync/controllers/AdminControllerTest.java`
+- [X] T032 [P] [US4] Integration test for `PUT` and `DELETE` endpoints in `backend/src/test/java/com/hiresync/controllers/AdminControllerTest.java`
 
 ### Implementation for User Story 4
 
-- [ ] T033 [US4] Implement `PUT /api/admin/job-postings/{id}` and `DELETE` logic in `backend/src/main/java/com/hiresync/controllers/JobPostingController.java`
-- [ ] T034 [US4] Create Admin Dashboard UI for managing (Edit/Delete) existing posts in `frontend/src/pages/admin/`
-- [ ] T035 [US4] Add authority validation for admin-only operations in `backend/src/main/java/com/hiresync/security/WebSecurityConfig.java`
+- [X] T033 [US4] Implement `PUT /api/admin/job-postings/{id}` and `DELETE` logic in `backend/src/main/java/com/hiresync/controllers/JobPostingController.java`
+- [X] T034 [US4] Create Admin Dashboard UI for managing (Edit/Delete) existing posts in `frontend/src/pages/admin/`
+- [X] T035 [US4] Add authority validation for admin-only operations in `backend/src/main/java/com/hiresync/security/WebSecurityConfig.java`
 
 ---
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T036 [P] Update `quickstart.md` with Java 21 and Gradle build instructions in `specs/001-job-info-service/quickstart.md`
-- [ ] T037 Optimize OpenAI prompts for higher extraction accuracy in PDF analysis in `backend/src/main/resources/prompts/`
-- [ ] T038 [P] Final security hardening and API documentation review in `backend/src/main/java/com/hiresync/config/SecurityConfig.java`
-- [ ] T039 Implement token usage logging for OpenAI API in `backend/src/main/java/com/hiresync/extraction/`
-- [ ] T040 Perform final end-to-end validation of all scenarios in project root
+- [X] T036 [P] Update `quickstart.md` with Java 21 and Gradle build instructions in `specs/001-job-info-service/quickstart.md`
+- [X] T037 Optimize OpenAI prompts for higher extraction accuracy in PDF analysis in `backend/src/main/resources/prompts/`
+- [X] T038 [P] Final security hardening and API documentation review in `backend/src/main/java/com/hiresync/config/SecurityConfig.java`
+- [X] T039 Implement token usage logging for OpenAI API in `backend/src/main/java/com/hiresync/extraction/`
+- [X] T040 Perform final end-to-end validation of all scenarios in project root
 
 ---
 

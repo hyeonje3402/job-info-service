@@ -1,7 +1,9 @@
 package com.hiresync.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,43 +14,43 @@ public class JobPosting {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "company_name", nullable = false)
+    @Column(name = "company_name", length = 100, nullable = false)
     private String companyName;
     
-    @Column(name = "location")
+    @Column(name = "location", nullable = false)
     private String location;
     
-    @Column(name = "field", nullable = false)
-    private String field;
+    @Column(name = "position", length = 100, nullable = false)
+    private String position;
     
-    @Column(name = "conditions", columnDefinition = "TEXT")
-    private String conditions;
+    @Column(name = "requirements", columnDefinition = "TEXT", nullable = false)
+    private String requirements;
     
-    @Column(name = "deadline")
-    private String deadline;
+    @Column(name = "opening_date", nullable = false)
+    private LocalDate openingDate;
     
-    @Column(name = "method", columnDefinition = "TEXT")
-    private String method;
+    @Column(name = "closing_date", nullable = false)
+    private LocalDate closingDate;
     
-    @Column(name = "expected_salary")
+    @Column(name = "application_method", nullable = false)
+    private String applicationMethod;
+    
+    @Column(name = "expected_salary", length = 100, nullable = false)
     private String expectedSalary;
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "source", nullable = false)
-    private SourceType source;
+    @Column(name = "status", length = 20, nullable = false)
+    private String status; // PENDING, APPROVED, EXPIRED
     
-    @Column(name = "source_origin", length = 500)
-    private String sourceOrigin;
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "source_id")
+    private Source source;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    public enum SourceType {
-        PDF, URL, EMAIL
-    }
 
     @PrePersist
     protected void onCreate() {

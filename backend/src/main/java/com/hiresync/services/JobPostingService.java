@@ -32,15 +32,16 @@ public class JobPostingService {
 
     public Optional<JobPosting> update(Long id, JobPosting updatedJobPosting) {
         return jobPostingRepository.findById(id).map(jobPosting -> {
-            jobPosting.setCompanyName(updatedJobPosting.getCompanyName());
-            jobPosting.setLocation(updatedJobPosting.getLocation());
-            jobPosting.setField(updatedJobPosting.getField());
-            jobPosting.setConditions(updatedJobPosting.getConditions());
-            jobPosting.setDeadline(updatedJobPosting.getDeadline());
-            jobPosting.setMethod(updatedJobPosting.getMethod());
-            jobPosting.setExpectedSalary(updatedJobPosting.getExpectedSalary());
-            jobPosting.setSource(updatedJobPosting.getSource());
-            jobPosting.setSourceOrigin(updatedJobPosting.getSourceOrigin());
+            if (updatedJobPosting.getCompanyName() != null) jobPosting.setCompanyName(updatedJobPosting.getCompanyName());
+            if (updatedJobPosting.getLocation() != null) jobPosting.setLocation(updatedJobPosting.getLocation());
+            if (updatedJobPosting.getPosition() != null) jobPosting.setPosition(updatedJobPosting.getPosition());
+            if (updatedJobPosting.getRequirements() != null) jobPosting.setRequirements(updatedJobPosting.getRequirements());
+            if (updatedJobPosting.getOpeningDate() != null) jobPosting.setOpeningDate(updatedJobPosting.getOpeningDate());
+            if (updatedJobPosting.getClosingDate() != null) jobPosting.setClosingDate(updatedJobPosting.getClosingDate());
+            if (updatedJobPosting.getApplicationMethod() != null) jobPosting.setApplicationMethod(updatedJobPosting.getApplicationMethod());
+            if (updatedJobPosting.getExpectedSalary() != null) jobPosting.setExpectedSalary(updatedJobPosting.getExpectedSalary());
+            if (updatedJobPosting.getStatus() != null) jobPosting.setStatus(updatedJobPosting.getStatus());
+            if (updatedJobPosting.getSource() != null) jobPosting.setSource(updatedJobPosting.getSource());
             return jobPostingRepository.save(jobPosting);
         });
     }

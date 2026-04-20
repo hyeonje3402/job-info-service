@@ -12,26 +12,27 @@ public class ExtractionLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "source_type", nullable = false)
-    private String sourceType;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "source_id", nullable = false)
+    private Source source;
     
-    @Column(name = "source_origin", length = 500)
-    private String sourceOrigin;
+    @Column(name = "model_version", nullable = false, length = 50)
+    private String modelVersion;
     
-    @Column(name = "status", nullable = false)
-    private String status;
+    @Column(name = "raw_data", columnDefinition = "TEXT", nullable = false)
+    private String rawData; // JSON formatted extracted data
+    
+    @Column(name = "processing_time_ms", nullable = false)
+    private Integer processingTimeMs;
     
     @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
     
-    @Column(name = "extracted_data", columnDefinition = "JSON")
-    private String extractedData;
-    
-    @Column(name = "processed_at")
+    @Column(name = "processed_at", nullable = false)
     private LocalDateTime processedAt;
 
     @PrePersist
-    protected void onProcess() {
+    protected void onCreate() {
         processedAt = LocalDateTime.now();
     }
 }
