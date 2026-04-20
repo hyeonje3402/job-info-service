@@ -33,7 +33,7 @@ class AdminControllerTest {
     @BeforeEach
     void setUp() {
         jobPostingRepository.deleteAll();
-        
+
         JobPosting post = new JobPosting();
         post.setCompanyName("Admin Test Company");
         post.setLocation("Seoul");
@@ -44,7 +44,7 @@ class AdminControllerTest {
         post.setApplicationMethod("Email");
         post.setExpectedSalary("4000");
         post.setStatus("PENDING");
-        
+
         JobPosting saved = jobPostingRepository.save(post);
         targetId = saved.getId();
     }
@@ -53,7 +53,7 @@ class AdminControllerTest {
     @WithMockUser(roles = "ADMIN")
     void shouldUpdateJobPostingWhenAdmin() throws Exception {
         String updatedJson = "{\"companyName\":\"Updated Company\",\"status\":\"APPROVED\",\"location\":\"Seoul\",\"position\":\"Developer\",\"requirements\":\"Requirements\",\"openingDate\":\"2026-04-03\",\"closingDate\":\"2026-05-03\",\"applicationMethod\":\"Email\",\"expectedSalary\":\"4000\"}";
-        
+
         mockMvc.perform(put("/api/v1/jobs/" + targetId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(updatedJson))
