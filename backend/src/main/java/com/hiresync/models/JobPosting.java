@@ -2,6 +2,7 @@ package com.hiresync.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,12 +15,14 @@ public class JobPosting {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    @NotBlank(message = "회사명은 필수입니다.")
     @Column(name = "company_name", length = 100)
     private String companyName;
     
     @Column(name = "location")
     private String location;
     
+    @NotBlank(message = "채용 포지션은 필수입니다.")
     @Column(name = "position", length = 100, nullable = false)
     private String position;
     
@@ -38,8 +41,12 @@ public class JobPosting {
     @Column(name = "expected_salary", length = 100)
     private String expectedSalary;
     
+    @NotBlank(message = "상태값은 필수입니다.")
     @Column(name = "status", length = 20, nullable = false)
     private String status; // PENDING, APPROVED, EXPIRED
+    
+    @Version
+    private Long version;
     
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)

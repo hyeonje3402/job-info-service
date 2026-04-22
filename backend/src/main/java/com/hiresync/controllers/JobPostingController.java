@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
 @Slf4j
+@org.springframework.validation.annotation.Validated
 public class JobPostingController {
     private final JobPostingService jobPostingService;
     private final UrlScrapingService urlScrapingService;
@@ -50,6 +51,13 @@ public class JobPostingController {
 
     @GetMapping("/jobs")
     public ResponseEntity<Map<String, Object>> getAllJobs(Pageable pageable) {
+        if (pageable.getPageNumber() < 0) {
+            throw new IllegalArgumentException("페이지 번호는 0 이상이어야 합니다.");
+        }
+        if (pageable.getPageSize() > 50) {
+            throw new IllegalArgumentException("한 번에 최대 50개까지만 조회 가능합니다.");
+        }
+        
         Page<JobPosting> jobs = jobPostingService.findAll(pageable);
         List<JobResponse> dtoList = jobs.getContent().stream()
                 .map(JobResponse::fromEntity)
@@ -59,7 +67,7 @@ public class JobPostingController {
     }
 
     @GetMapping("/jobs/{id}")
-    public ResponseEntity<ApiResponse<JobResponse>> getJobById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<JobResponse>> getJobById(@PathVariable("id") Long id) {
         return jobPostingService.findById(id)
                 .map(job -> ResponseEntity.ok(ApiResponse.success(JobResponse.fromEntity(job))))
                 .orElse(ResponseEntity.notFound().build());
@@ -140,8 +148,8 @@ public class JobPostingController {
 
     @PutMapping("/jobs/{id}")
     @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<ApiResponse<JobResponse>> updateJob(@PathVariable Long id, @RequestBody JobPosting jobPosting) {
-        return jobPostingService.update(id, jobPosting)
+    public ResponseEntity<ApiResponse<JobResponse>> updateJob(@PathVariable Long id, @jakarta.validation.Valid @RequestBody com.hiresync.models.JobPostingRequest request) {
+        return jobPostingService.update(id, request)
                 .map(updated -> ResponseEntity.ok(ApiResponse.success(JobResponse.fromEntity(updated))))
                 .orElse(ResponseEntity.notFound().build());
     }
