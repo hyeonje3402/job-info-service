@@ -25,11 +25,13 @@ public class PdfAnalysisService {
         Extract ALL individual job recruitment information from the provided text into a JSON array.
         
         [STRICT INSTRUCTIONS]
-        1. Find company names like 'SK Key Foundry' even if the text is messy.
-        2. Convert deadlines to 'YYYY-MM-DD'. If 'until filled', use '2026-12-31'.
-        3. Opening date is today: 2026-04-06.
-        4. Provide the response ONLY as a valid JSON object matching the structure below.
-        5. DO NOT include any markdown tags (like ```json) or explanations.
+        1. Find company names even if the text is messy.
+        2. Convert deadlines to 'YYYY-MM-DD'.
+        3. If any field information (like opening date) is NOT explicitly mentioned in the text, you MUST set its value to null. (NEVER hallucinate or use today's date).
+        4. If there are multiple locations, list ALL of them separated by commas (e.g., "Icheon, Yongin, Cheongju").
+        5. Include even expired or old job postings.
+        6. Provide the response ONLY as a valid JSON object matching the structure below.
+        7. DO NOT include any markdown tags (like ```json) or explanations.
         
         [JSON STRUCTURE]
         {json_structure}
@@ -42,14 +44,14 @@ public class PdfAnalysisService {
         {
           "jobPostings": [
             {
-              "companyName": "Company Name",
-              "location": "Location (use 'TBD' if unknown)",
+              "companyName": "Company Name (null if missing)",
+              "location": "List ALL locations separated by commas (null if missing)",
               "position": "Job Title (Required)",
-              "requirements": "Qualifications",
-              "openingDate": "2026-04-06",
-              "closingDate": "YYYY-MM-DD",
-              "applicationMethod": "Apply Link or Method",
-              "expectedSalary": "Salary (use 'Negotiable' if unknown)"
+              "requirements": "Qualifications (null if missing)",
+              "openingDate": "YYYY-MM-DD (null if missing)",
+              "closingDate": "YYYY-MM-DD (null if missing)",
+              "applicationMethod": "Apply Link or Method (null if missing)",
+              "expectedSalary": "Salary (null if missing)"
             }
           ]
         }

@@ -177,8 +177,11 @@ public class PdfAnalysisController {
             if (data.getLocation() == null) data.setLocation("Unknown");
             if (data.getPosition() == null) data.setPosition("General");
             if (data.getRequirements() == null) data.setRequirements("N/A");
-            if (data.getOpeningDate() == null) data.setOpeningDate(LocalDate.now());
-            if (data.getClosingDate() == null) data.setClosingDate(LocalDate.now().plusMonths(1));
+            
+            // 날짜가 명시되지 않은 경우 그대로 null 유지 (오늘 날짜 강제 주입 제거)
+            if (data.getOpeningDate() == null) data.setOpeningDate(null);
+            if (data.getClosingDate() == null) data.setClosingDate(null);
+            
             if (data.getApplicationMethod() == null) data.setApplicationMethod("N/A");
             if (data.getExpectedSalary() == null) data.setExpectedSalary("Negotiable");
             

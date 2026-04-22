@@ -9,6 +9,7 @@ import com.hiresync.models.Source;
 import com.hiresync.repositories.ExtractionLogRepository;
 import com.hiresync.repositories.SourceRepository;
 import com.hiresync.services.JobPostingService;
+import com.hiresync.services.SaraminCrawlerService;
 import com.hiresync.services.UrlScrapingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,10 +34,18 @@ public class JobPostingController {
     private final OpenAiExtractionEngine extractionEngine;
     private final SourceRepository sourceRepository;
     private final ExtractionLogRepository extractionLogRepository;
+    private final SaraminCrawlerService saraminCrawlerService;
 
     @PostMapping("/healthcheck")
     public ResponseEntity<ApiResponse<Void>> healthCheck() {
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @GetMapping("/crawl")
+    public ResponseEntity<ApiResponse<String>> crawlUrl(@RequestParam String url) {
+        log.info("Crawling URL: {}", url);
+        String extractedText = saraminCrawlerService.crawlJobPosting(url);
+        return ResponseEntity.ok(ApiResponse.success(extractedText));
     }
 
     @GetMapping("/jobs")
@@ -87,17 +96,30 @@ public class JobPostingController {
             JobResponse firstSavedDto = null;
             for (Map<String, String> data : extractedData) {
                 JobPosting posting = new JobPosting();
-                posting.setCompanyName(data.getOrDefault("companyName", "Unknown"));
-                posting.setLocation(data.getOrDefault("location", "Unknown"));
+                posting.setCompanyName(data.getOrDefault("companyName", null));
+                posting.setLocation(data.getOrDefault("location", null));
                 posting.setPosition(data.getOrDefault("position", "Unknown"));
-                posting.setRequirements(data.getOrDefault("requirements", "N/A"));
+                posting.setRequirements(data.getOrDefault("requirements", null));
                 
-                // 날짜 처리 (기본값 설정)
-                posting.setOpeningDate(LocalDate.now());
-                posting.setClosingDate(LocalDate.now().plusMonths(1));
+                // 날짜 처리: AI가 준 데이터가 있으면 파싱, 없으면 null 유지
+                if (data.get("openingDate") != null && !data.get("openingDate").equalsIgnoreCase("null")) {
+                    try {
+                        posting.setOpeningDate(LocalDate.parse(data.get("openingDate")));
+                    } catch (Exception e) {
+                        log.warn("Failed to parse openingDate: {}", data.get("openingDate"));
+                    }
+                }
                 
-                posting.setApplicationMethod("URL: " + url + "\n" + data.getOrDefault("applicationMethod", ""));
-                posting.setExpectedSalary(data.getOrDefault("expectedSalary", "Negotiable"));
+                if (data.get("closingDate") != null && !data.get("closingDate").equalsIgnoreCase("null")) {
+                    try {
+                        posting.setClosingDate(LocalDate.parse(data.get("closingDate")));
+                    } catch (Exception e) {
+                        log.warn("Failed to parse closingDate: {}", data.get("closingDate"));
+                    }
+                }
+                
+                posting.setApplicationMethod(data.getOrDefault("applicationMethod", null));
+                posting.setExpectedSalary(data.getOrDefault("expectedSalary", null));
                 posting.setStatus("PENDING");
                 posting.setSource(source);
 

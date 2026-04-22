@@ -14,28 +14,28 @@ public class JobPosting {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "company_name", length = 100, nullable = false)
+    @Column(name = "company_name", length = 100)
     private String companyName;
     
-    @Column(name = "location", nullable = false)
+    @Column(name = "location")
     private String location;
     
     @Column(name = "position", length = 100, nullable = false)
     private String position;
     
-    @Column(name = "requirements", columnDefinition = "TEXT", nullable = false)
+    @Column(name = "requirements", columnDefinition = "TEXT")
     private String requirements;
     
-    @Column(name = "opening_date", nullable = false)
+    @Column(name = "opening_date")
     private LocalDate openingDate;
     
-    @Column(name = "closing_date", nullable = false)
+    @Column(name = "closing_date")
     private LocalDate closingDate;
     
-    @Column(name = "application_method", nullable = false)
+    @Column(name = "application_method")
     private String applicationMethod;
     
-    @Column(name = "expected_salary", length = 100, nullable = false)
+    @Column(name = "expected_salary", length = 100)
     private String expectedSalary;
     
     @Column(name = "status", length = 20, nullable = false)

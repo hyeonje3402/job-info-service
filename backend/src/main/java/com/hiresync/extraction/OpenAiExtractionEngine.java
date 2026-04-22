@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -29,8 +31,12 @@ public class OpenAiExtractionEngine {
     public List<Map<String, String>> extractJobPostings(String rawText) {
         ChatClient chatClient = chatClientBuilder.build();
         
-        ChatResponse chatResponse = chatClient.prompt()
-            .user(u -> u.text(extractionPrompt).param("context", rawText))
+        // 1. PromptTemplate을 사용하여 안전하게 텍스트 주입
+        PromptTemplate template = new PromptTemplate(extractionPrompt);
+        Prompt prompt = template.create(Map.of("text", rawText));
+        
+        // 2. ChatClient를 통해 AI 호출
+        ChatResponse chatResponse = chatClient.prompt(prompt)
             .call()
             .chatResponse();
 
