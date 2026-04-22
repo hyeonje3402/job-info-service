@@ -1,0 +1,6 @@
+#FileLock
+#Tue Apr 21 00:10:35 KST 2026
+hostName=LAPTOP-SCEP40KL.localdomain
+id=19dab717f54b4ec7b87cdfce6a13e40105728c7841a
+method=file
+server=127.0.1.1\:35845
