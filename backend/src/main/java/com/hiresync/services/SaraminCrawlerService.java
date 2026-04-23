@@ -57,14 +57,4 @@ public class SaraminCrawlerService {
         
         return resultText.toString();
     }
-
-    // 간단한 실행 테스트를 위한 메인 메소드
-    public static void main(String[] args) {
-        // WebDriver 경로 설정이 필요할 수 있습니다 (환경에 따라 다름)
-        // System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
-        
-        SaraminCrawlerService crawler = new SaraminCrawlerService();
-        String targetUrl = "https://www.saramin.co.kr/zf_user/jobs/relay/view?view_type=list&rec_idx=53510601&t_ref=jobcategory_recruit&t_ref_content=general#seq=0";
-        crawler.crawlJobPosting(targetUrl);
-    }
 }

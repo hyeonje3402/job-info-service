@@ -56,7 +56,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers(HttpMethod.PUT, "/api/v1/jobs/**").hasAuthority("ADMIN")
                                 .requestMatchers(HttpMethod.DELETE, "/api/v1/jobs/**").hasAuthority("ADMIN")
-                                .requestMatchers("/api/v1/pdf/**").authenticated()
+                                .requestMatchers("/api/v1/sources/**").authenticated()
                                 .requestMatchers("/api/v1/**").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()

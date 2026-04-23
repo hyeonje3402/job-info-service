@@ -40,7 +40,7 @@
 
 ### Tests for User Story 1
 
-- [X] T012 [P] [US1] Create integration test for `GET /api/job-postings` in `backend/src/test/java/com/hiresync/controllers/JobPostingControllerTest.java`
+- [X] T012 [P] [US1] Create integration test for `GET /api/v1/jobs` in `backend/src/test/java/com/hiresync/controllers/JobPostingControllerTest.java`
 - [X] T013 [P] [US1] Create unit test for `JobPostingService.findAll()` in `backend/src/test/java/com/hiresync/services/JobPostingServiceTest.java`
 
 ### Implementation for User Story 1

@@ -201,10 +201,10 @@ class JobPostingControllerTest {
 
         Map<String, String> request = Map.of("url", testUrl);
         
-        mockMvc.perform(post("/api/v1/url")
+        mockMvc.perform(post("/api/v1/sources/url")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.companyName").value("Example Co"));
     }
@@ -218,7 +218,7 @@ class JobPostingControllerTest {
 
         Map<String, String> request = Map.of("url", testUrl);
         
-        mockMvc.perform(post("/api/v1/url")
+        mockMvc.perform(post("/api/v1/sources/url")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -234,7 +234,7 @@ class JobPostingControllerTest {
 
         Map<String, String> request = Map.of("url", testUrl);
         
-        mockMvc.perform(post("/api/v1/url")
+        mockMvc.perform(post("/api/v1/sources/url")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError())

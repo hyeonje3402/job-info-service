@@ -13,8 +13,8 @@ const AdminDashboard = () => {
 
   const fetchJobPostings = async () => {
     try {
-      const response = await axios.get('/api/job-postings');
-      setJobPostings(response.data.content || []);
+      const response = await axios.get('/api/v1/jobs');
+      setJobPostings(response.data.data?.content || []);
       setLoading(false);
     } catch (err) {
       console.error('Failed to fetch job postings', err);
@@ -26,7 +26,7 @@ const AdminDashboard = () => {
   const [urlState, urlAction, isUrlPending] = useActionState(async (prevState, formData) => {
     const urlValue = formData.get('url');
     try {
-      await axios.post('/api/admin/job-postings/register-url', { url: urlValue });
+      await axios.post('/api/v1/sources/url', { url: urlValue });
       fetchJobPostings();
       return { success: true, message: 'URL이 성공적으로 등록되었습니다.' };
     } catch (err) {
@@ -43,11 +43,12 @@ const AdminDashboard = () => {
     }
 
     const formData = new FormData();
-    formData.append('pdfFile', file);
+    formData.append('file', file); // 백엔드 파라미터명이 'file'임
 
     try {
-      await axios.post('/api/admin/jobs/pdf', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      await axios.post('/api/v1/sources/pdf', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true
       });
       setMessage('PDF가 성공적으로 분석 및 등록되었습니다.');
       fetchJobPostings();
@@ -60,7 +61,7 @@ const AdminDashboard = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('정말 삭제하시겠습니까?')) return;
     try {
-      await axios.delete(`/api/admin/job-postings/${id}`);
+      await axios.delete(`/api/v1/jobs/${id}`, { withCredentials: true });
       fetchJobPostings();
       alert('삭제되었습니다.');
     } catch (err) {
@@ -71,7 +72,7 @@ const AdminDashboard = () => {
   // 승인 처리 (Status PENDING -> APPROVED)
   const handleApprove = async (job) => {
     try {
-      await axios.put(`/api/admin/job-postings/${job.id}`, { ...job, status: 'APPROVED' });
+      await axios.put(`/api/v1/jobs/${job.id}`, { ...job, status: 'APPROVED' }, { withCredentials: true });
       fetchJobPostings();
       alert('승인되었습니다.');
     } catch (err) {

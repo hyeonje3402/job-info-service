@@ -19,8 +19,10 @@ public class UrlScrapingService {
         try {
             // 1. URL 접속 및 문서 로드
             Document doc = Jsoup.connect(url)
-                    .timeout(10000) // SC-002: 10초 타임아웃
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+                    .timeout(30000) // 타임아웃을 30초로 증가 (기존 10초에서 변경)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .followRedirects(true) // 리다이렉트 허용
+                    .referrer("http://www.google.com") // 참조 페이지 설정 (봇 탐지 우회 도움)
                     .get();
 
             // 2. HTML 태그 제거 및 안전한 텍스트 추출 (JSoup Cleaner)

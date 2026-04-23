@@ -127,7 +127,7 @@ class PdfAnalysisControllerTest {
     void shouldHandleBlankPdfContent() throws Exception {
         when(pdfAnalysisService.extractTextFromPdf(any())).thenReturn("");
 
-        mockMvc.perform(multipart("/api/v1/pdf").file(mockPdf))
+        mockMvc.perform(multipart("/api/v1/sources/pdf").file(mockPdf))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("error"))
                 .andExpect(jsonPath("$.message").value("Empty PDF content"));
@@ -139,7 +139,7 @@ class PdfAnalysisControllerTest {
         when(pdfAnalysisService.extractTextFromPdf(any())).thenReturn("dummy raw text");
         when(pdfAnalysisService.analyzeText(any())).thenReturn(null);
 
-        mockMvc.perform(multipart("/api/v1/pdf").file(mockPdf))
+        mockMvc.perform(multipart("/api/v1/sources/pdf").file(mockPdf))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("error"))
                 .andExpect(jsonPath("$.message").value("AI extraction failed"));
@@ -151,7 +151,7 @@ class PdfAnalysisControllerTest {
         when(pdfAnalysisService.extractTextFromPdf(any())).thenReturn("dummy raw text");
         when(pdfAnalysisService.analyzeText(any())).thenReturn("Invalid JSON string");
 
-        mockMvc.perform(multipart("/api/v1/pdf").file(mockPdf))
+        mockMvc.perform(multipart("/api/v1/sources/pdf").file(mockPdf))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("error"))
                 .andExpect(jsonPath("$.message").value("Failed to parse AI response"));
@@ -167,7 +167,7 @@ class PdfAnalysisControllerTest {
             }
         };
 
-        mockMvc.perform(multipart("/api/v1/pdf").file(errorFile))
+        mockMvc.perform(multipart("/api/v1/sources/pdf").file(errorFile))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value("error"))
                 .andExpect(jsonPath("$.message").value("Error reading PDF file"));
@@ -180,7 +180,7 @@ class PdfAnalysisControllerTest {
         when(pdfAnalysisService.analyzeText(any())).thenReturn("{\"companyName\": \"Save Fail Corp\"}");
         when(jobPostingService.save(any(JobPosting.class))).thenThrow(new RuntimeException("DB Error"));
 
-        mockMvc.perform(multipart("/api/v1/pdf").file(mockPdf))
+        mockMvc.perform(multipart("/api/v1/sources/pdf").file(mockPdf))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value("error"))
                 .andExpect(jsonPath("$.message").value("Database save failure"));
@@ -211,7 +211,7 @@ class PdfAnalysisControllerTest {
         savedJob.setExpectedSalary("Negotiable");
         when(jobPostingService.save(any(JobPosting.class))).thenReturn(savedJob);
 
-        mockMvc.perform(multipart("/api/v1/pdf").file(mockPdf))
+        mockMvc.perform(multipart("/api/v1/sources/pdf").file(mockPdf))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.companyName").value("Unknown Company"))
                 .andExpect(jsonPath("$.data.location").value("Unknown"))
@@ -228,7 +228,7 @@ class PdfAnalysisControllerTest {
         savedJob.setPosition("Developer");
         when(jobPostingService.save(any(JobPosting.class))).thenReturn(savedJob);
 
-        mockMvc.perform(multipart("/api/v1/pdf").file(mockPdf))
+        mockMvc.perform(multipart("/api/v1/sources/pdf").file(mockPdf))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.companyName").value(expectedCompanyName));
@@ -239,7 +239,7 @@ class PdfAnalysisControllerTest {
         when(pdfAnalysisService.extractTextFromPdf(any())).thenReturn("dummy raw text");
         when(pdfAnalysisService.analyzeText(any())).thenReturn("{}");
 
-        mockMvc.perform(multipart("/api/v1/pdf")
+        mockMvc.perform(multipart("/api/v1/sources/pdf")
                 .file(mockPdf))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("error"))
@@ -250,7 +250,7 @@ class PdfAnalysisControllerTest {
     void shouldHandleUnexpectedError() throws Exception {
         when(pdfAnalysisService.analyzePdf(any(), any())).thenThrow(new RuntimeException("AI Service Down"));
 
-        mockMvc.perform(multipart("/api/v1/pdf")
+        mockMvc.perform(multipart("/api/v1/sources/pdf")
                 .file(mockPdf))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value("error"))

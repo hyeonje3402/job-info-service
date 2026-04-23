@@ -122,7 +122,7 @@
 
 ### PDF 업로드 및 정보 추출
 - **Method**: `POST`
-- **Path**: `/api/v1/pdf`
+- **Path**: `/api/v1/sources/pdf`
 - **Content-Type**: `multipart/form-data`
 - **Request Body**:
   - `file`: `MultipartFile` (PDF 파일)
@@ -132,7 +132,7 @@
 
 ### URL 등록 및 정보 추출
 - **Method**: `POST`
-- **Path**: `/api/v1/url`
+- **Path**: `/api/v1/sources/url`
 - **Request Body**:
   - `url`: `String` (채용 페이지 URL)
 - **Response Body**:

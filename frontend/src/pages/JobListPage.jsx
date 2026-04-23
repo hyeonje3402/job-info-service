@@ -10,8 +10,8 @@ const JobListPage = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await axios.get('/api/job-postings');
-        setJobPostings(response.data.content || []);
+        const response = await axios.get('/api/v1/jobs');
+        setJobPostings(response.data.data?.content || []);
         setLoading(false);
       } catch (err) {
         setError('데이터를 불러오는 중 오류가 발생했습니다.');

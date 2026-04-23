@@ -73,7 +73,7 @@ public class JobPostingController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/url")
+    @PostMapping("/sources/url")
     public ResponseEntity<ApiResponse<?>> registerUrl(@RequestBody Map<String, String> request) {
         String url = request.get("url");
         long startTime = System.currentTimeMillis();
