@@ -146,9 +146,33 @@ public class JobPostingController {
         }
     }
 
+    @PostMapping("/jobs")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<ApiResponse<JobResponse>> createJob(@jakarta.validation.Valid @RequestBody com.hiresync.models.JobPostingRequest request) {
+        JobPosting posting = new JobPosting();
+        posting.setCompanyName(request.getCompanyName());
+        posting.setLocation(request.getLocation());
+        posting.setPosition(request.getPosition() != null ? request.getPosition() : "Unknown");
+        posting.setRequirements(request.getRequirements());
+        
+        if (request.getOpeningDate() != null && !request.getOpeningDate().isBlank()) {
+            try { posting.setOpeningDate(LocalDate.parse(request.getOpeningDate())); } catch (Exception ignored) {}
+        }
+        if (request.getClosingDate() != null && !request.getClosingDate().isBlank()) {
+            try { posting.setClosingDate(LocalDate.parse(request.getClosingDate())); } catch (Exception ignored) {}
+        }
+        
+        posting.setApplicationMethod(request.getApplicationMethod());
+        posting.setExpectedSalary(request.getExpectedSalary());
+        posting.setStatus(request.getStatus() != null ? request.getStatus() : "PENDING");
+
+        JobPosting saved = jobPostingService.save(posting);
+        return ResponseEntity.ok(ApiResponse.success(JobResponse.fromEntity(saved)));
+    }
+
     @PutMapping("/jobs/{id}")
     @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<ApiResponse<JobResponse>> updateJob(@PathVariable Long id, @jakarta.validation.Valid @RequestBody com.hiresync.models.JobPostingRequest request) {
+    public ResponseEntity<ApiResponse<JobResponse>> updateJob(@PathVariable("id") Long id, @jakarta.validation.Valid @RequestBody com.hiresync.models.JobPostingRequest request) {
         return jobPostingService.update(id, request)
                 .map(updated -> ResponseEntity.ok(ApiResponse.success(JobResponse.fromEntity(updated))))
                 .orElse(ResponseEntity.notFound().build());
@@ -156,7 +180,7 @@ public class JobPostingController {
 
     @DeleteMapping("/jobs/{id}")
     @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteJob(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteJob(@PathVariable("id") Long id) {
         jobPostingService.deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
