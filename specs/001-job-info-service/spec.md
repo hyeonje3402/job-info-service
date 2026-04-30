@@ -125,3 +125,23 @@
 - **SC-003**: 유효한 텍스트 기반 PDF 파일 업로드 시 정보 추출 정확도가 90% 이상이어야 함 (필수 항목 추출 기준).
 - **SC-004**: 권한이 없는 사용자가 수정/삭제 API에 접근할 때 100% 차단되어야 함.
 - **SC-005**: 제목 규칙을 준수한 이메일 수신 후 5분 이내에 시스템에 등록 대기 상태로 반영되어야 함.
+
+## API Endpoints
+
+서비스에서 제공하는 주요 API 엔드포인트 요약입니다. (상세 명세는 `contracts/api-spec.md` 참조)
+
+### 일반 사용자용
+- **`GET /api/v1/jobs`**: 채용 정보 목록 조회 (페이징 지원)
+- **`GET /api/v1/jobs/{id}`**: 채용 정보 상세 조회
+- **`POST /api/v1/auth/register`**: 사용자 등록
+- **`POST /api/v1/auth/login`**: 사용자 로그인
+- **`POST /api/v1/auth/logout`**: 사용자 로그아웃
+- **`POST /api/v1/healthcheck`**: 시스템 상태 확인
+
+### 관리자 전용 (Admin 권한 필요)
+- **`POST /api/v1/sources/pdf`**: PDF 업로드 및 정보 추출
+- **`POST /api/v1/sources/url`**: URL 등록 및 정보 추출
+- **`GET /api/v1/crawl?url={url}`**: 특정 URL의 원본 텍스트 크롤링 (데이터 확인용)
+- **`POST /api/v1/jobs`**: 관리자 수동 채용 정보 생성
+- **`PUT /api/v1/jobs/{id}`**: 채용 정보 수정 및 승인
+- **`DELETE /api/v1/jobs/{id}`**: 채용 정보 삭제
