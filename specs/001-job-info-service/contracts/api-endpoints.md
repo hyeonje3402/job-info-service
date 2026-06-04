@@ -16,12 +16,14 @@
   "status": "success",
   "data": [
     {
+      "id": 1,
       "email": "user@example.com",
       "name": "홍길동",
       "role": "GENERAL",
       "status": "ACTIVE"
     },
     {
+      "id": 2,
       "email": "admin@example.com",
       "name": "관리자",
       "role": "ADMIN",
@@ -41,6 +43,7 @@
 {
   "status": "success",
   "data": {
+    "id": 1,
     "email": "user@example.com",
     "name": "홍길동",
     "role": "GENERAL",
