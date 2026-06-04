@@ -1,0 +1,332 @@
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&family=Noto+Sans:wght@400;600&display=swap');
+
+/* 취업 정보 관리 시스템 채용정보 추가 디자인 토큰 (DESIGN.md 규격 준수) */
+.addjob-page-root {
+  --primary-color: #1A5AD7;
+  --secondary-color: #64748B;
+  --neutral-bg: #F8FAFC;
+  --surface-lowest: #FFFFFF;
+  --border-subtle: #E2E8F0;
+  --on-surface: #191C1E;
+  --on-surface-variant: #434654;
+  
+  --font-title: 'Hanken Grotesk', 'Noto Sans KR', sans-serif;
+  --font-body: 'Noto Sans', 'Noto Sans KR', sans-serif;
+  
+  --shadow-sm: 0px 4px 12px rgba(0, 0, 0, 0.05);
+  
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--neutral-bg);
+  font-family: var(--font-body);
+  color: var(--on-surface);
+  box-sizing: border-box;
+  padding: 16px;
+  padding-top: 32px; /* pt-xl */
+}
+
+@media (min-width: 768px) {
+  .addjob-page-root {
+    padding-top: 48px; /* pt-2xl */
+  }
+}
+
+.addjob-page-root * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* 메인 폼 카드 컨테이너 */
+.addjob-card {
+  width: 100%;
+  max-width: 672px; /* max-w-2xl 반영 */
+  background-color: var(--surface-lowest);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px; /* DESIGN.md 카드 반경: 8px */
+  box-shadow: var(--shadow-sm);
+  padding: 24px; /* lg (24px) */
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .addjob-card {
+    padding: 32px; /* xl (32px) */
+  }
+}
+
+/* 헤더 타이틀 영역 */
+.addjob-header {
+  margin-bottom: 24px; /* lg (24px) */
+  padding-bottom: 16px; /* md (16px) */
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.addjob-title {
+  font-family: var(--font-title);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  color: var(--on-surface);
+  margin-bottom: 4px;
+}
+
+@media (min-width: 768px) {
+  .addjob-title {
+    font-size: 32px; /* headline-lg */
+    line-height: 40px;
+  }
+}
+
+.addjob-subtitle {
+  font-size: 16px; /* body-md */
+  color: var(--on-surface-variant);
+}
+
+/* 세그먼티드 컨트롤 (탭 영역) */
+.addjob-segmented-control {
+  display: flex;
+  background-color: #eceef0; /* surface-container */
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 32px; /* xl (32px) */
+  width: 100%;
+}
+
+.segmented-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 0;
+  font-size: 14px; /* label-md */
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  transition: all 0.25s ease-in-out;
+  font-family: var(--font-body);
+}
+
+.segmented-tab-btn:hover {
+  color: var(--on-surface);
+}
+
+.segmented-tab-btn.active {
+  background-color: var(--surface-lowest);
+  color: var(--primary-color);
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tab-icon {
+  font-size: 20px;
+}
+
+/* 폼 입력창 가변 영역 */
+.addjob-form-body-area {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* 1. 파일 업로드 점선 드롭존 구획 */
+.file-dropzone-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--border-subtle);
+  border-radius: 8px;
+  background-color: var(--surface-lowest);
+  padding: 48px 24px; /* py-3xl px-lg */
+  gap: 16px; /* md (16px) */
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-align: center;
+}
+
+.file-dropzone-container:hover {
+  background-color: var(--neutral-bg);
+  border-color: var(--primary-color);
+}
+
+.file-dropzone-container.drag-active {
+  border-color: var(--primary-color);
+  background-color: #f2f7ff;
+}
+
+.dropzone-icon-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #d0e1fb; /* secondary-container */
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.file-dropzone-container:hover .dropzone-icon-circle {
+  transform: scale(1.05);
+}
+
+.dropzone-main-label {
+  font-family: var(--font-title);
+  font-size: 20px; /* title-md */
+  font-weight: 600;
+  color: var(--on-surface);
+  margin-bottom: 4px;
+}
+
+.dropzone-sub-label {
+  font-size: 14px; /* body-sm */
+  color: var(--on-surface-variant);
+}
+
+.dropzone-btn {
+  margin-top: 16px;
+  padding: 8px 32px;
+  border-radius: 9999px; /* Pill */
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  background-color: var(--surface-lowest);
+  font-size: 14px; /* label-md */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-body);
+}
+
+.file-dropzone-container:hover .dropzone-btn {
+  background-color: var(--primary-color);
+  color: #FFFFFF;
+  border-color: transparent;
+}
+
+/* 2. URL 입력 폼 영역 */
+.url-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* sm */
+  width: 100%;
+}
+
+.url-input-label {
+  font-size: 14px; /* label-md */
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.url-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.url-input-icon {
+  position: absolute;
+  left: 16px;
+  color: var(--secondary-color);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.url-input-field {
+  width: 100%;
+  padding: 12px 16px 12px 44px; /* 내부 아이콘 영역(44px) 확보 */
+  font-size: 16px; /* body-md */
+  font-family: var(--font-body);
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background-color: var(--surface-lowest);
+  color: var(--on-surface);
+  transition: all 0.2s ease-in-out;
+  outline: none;
+}
+
+.url-input-field::placeholder {
+  color: var(--secondary-color);
+  opacity: 0.7;
+}
+
+.url-input-field:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(26, 90, 215, 0.2);
+}
+
+.url-info-desc {
+  font-size: 14px; /* body-sm */
+  color: var(--on-surface-variant);
+  margin-top: 4px;
+}
+
+/* 하단 액션 버튼 바 */
+.addjob-action-bar {
+  margin-top: 48px; /* 2xl (48px) */
+  padding-top: 24px; /* lg (24px) */
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px; /* md (16px) */
+}
+
+/* 버튼 규격 */
+.addjob-btn {
+  padding: 10px 32px; /* px-xl py-md 단축 */
+  font-size: 14px; /* label-md */
+  font-weight: 600;
+  line-height: 20px;
+  border-radius: 9999px; /* Pill 버튼 규칙 */
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  font-family: var(--font-body);
+}
+
+.addjob-btn:active {
+  transform: scale(0.95);
+}
+
+.addjob-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 확인 버튼 */
+.addjob-btn-primary {
+  background-color: var(--primary-color);
+  color: #FFFFFF;
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.addjob-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+/* 취소 버튼 */
+.addjob-btn-outline {
+  background-color: var(--surface-lowest);
+  border: 1px solid var(--border-subtle);
+  color: var(--on-surface-variant);
+}
+
+.addjob-btn-outline:hover:not(:disabled) {
+  background-color: var(--neutral-bg);
+  color: var(--on-surface);
+}

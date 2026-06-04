@@ -21,6 +21,14 @@ public class JobResponse {
     private String applicationMethod;
     private String expectedSalary;
     private String status;
+    private SourceInfo source;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SourceInfo {
+        private String status;
+    }
 
     public static JobResponse fromEntity(JobPosting entity) {
         if (entity == null) return null;
@@ -35,6 +43,7 @@ public class JobResponse {
                 .applicationMethod(entity.getApplicationMethod())
                 .expectedSalary(entity.getExpectedSalary())
                 .status(entity.getStatus())
+                .source(entity.getSource() != null ? new SourceInfo(entity.getSource().getStatus()) : null)
                 .build();
     }
 }

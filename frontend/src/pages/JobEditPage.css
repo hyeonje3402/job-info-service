@@ -1,0 +1,278 @@
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&family=Noto+Sans:wght@400;600&display=swap');
+
+/* 취업 정보 관리 시스템 채용정보 수정 디자인 토큰 (DESIGN.md 규격 철저 준수) */
+.editjob-page-root {
+  --primary-color: #1A5AD7;
+  --secondary-color: #64748B;
+  --neutral-bg: #F8FAFC;
+  --surface-lowest: #FFFFFF;
+  --surface-container-low: #F2F4F6;
+  --border-subtle: #E2E8F0;
+  --on-surface: #191C1E;
+  --on-surface-variant: #434654;
+  --outline: #737686;
+  
+  --font-title: 'Hanken Grotesk', 'Noto Sans KR', sans-serif;
+  --font-body: 'Noto Sans', 'Noto Sans KR', sans-serif;
+  
+  --shadow-sm: 0px 4px 12px rgba(0, 0, 0, 0.05);
+  
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--neutral-bg);
+  font-family: var(--font-body);
+  color: var(--on-surface);
+  box-sizing: border-box;
+  padding: 16px;
+  padding-bottom: 64px; /* 바텀 바 여유 확보 */
+}
+
+@media (min-width: 1024px) {
+  .editjob-page-root {
+    padding: 24px;
+    padding-left: 48px; /* 사이드바 간격 */
+  }
+}
+
+.editjob-page-root * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* 메인 폼 카드 컨테이너 (DESIGN.md: 카드 및 모달 반경 8px/rounded-lg) */
+.editjob-card {
+  width: 100%;
+  max-width: 896px; /* max-w-4xl 반영 */
+  background-color: var(--surface-lowest);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px; /* DESIGN.md 카드 반경: 8px */
+  box-shadow: var(--shadow-sm);
+  padding: 24px; /* lg (24px) */
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .editjob-card {
+    padding: 32px; /* xl (32px) */
+  }
+}
+
+/* 헤더 영역 */
+.editjob-header {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* sm (8px) */
+  margin-bottom: 8px;
+}
+
+.editjob-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background-color: transparent;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.editjob-back-btn:hover {
+  background-color: var(--neutral-bg);
+  color: var(--primary-color);
+}
+
+.editjob-title {
+  font-family: var(--font-title);
+  font-size: 24px; /* headline-lg-mobile */
+  font-weight: 600;
+  line-height: 32px;
+  color: var(--on-surface);
+}
+
+@media (min-width: 768px) {
+  .editjob-title {
+    font-size: 32px; /* headline-lg */
+    line-height: 40px;
+  }
+}
+
+/* 구획 분할 섹션 */
+.editjob-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.editjob-section-title {
+  font-family: var(--font-title);
+  font-size: 20px; /* title-md */
+  font-weight: 600;
+  line-height: 28px;
+  color: var(--primary-color);
+  padding-bottom: 4px; /* xs */
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* 그리드 레이아웃 */
+.editjob-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px; /* md (16px) */
+}
+
+@media (min-width: 768px) {
+  .editjob-grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.editjob-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px; /* md (16px) */
+}
+
+@media (min-width: 768px) {
+  .editjob-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* 개별 인풋 그룹 */
+.editjob-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* xs (4px) */
+}
+
+.editjob-label {
+  font-size: 14px; /* label-md */
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--on-surface);
+}
+
+/* 입력 필드 (DESIGN.md: 버튼 및 입력창 반경 4px 일관되게 부여) */
+.editjob-input,
+.editjob-textarea,
+.editjob-select {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 16px; /* body-md */
+  font-family: var(--font-body);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px; /* DESIGN.md 규격: 4px */
+  background-color: var(--surface-lowest);
+  color: var(--on-surface);
+  transition: all 0.2s ease-in-out;
+  outline: none;
+}
+
+.editjob-textarea {
+  resize: vertical;
+  min-height: 112px;
+}
+
+/* 포커스 상태 (DESIGN.md: 테두리 1px #1A5AD7 + 2px 부드러운 블루 광채 외곽 glow 효과) */
+.editjob-input:focus,
+.editjob-textarea:focus,
+.editjob-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(26, 90, 215, 0.2);
+}
+
+/* 읽기 전용 상태 */
+.editjob-input.readonly {
+  background-color: var(--surface-container-low);
+  color: var(--on-surface-variant);
+  cursor: not-allowed;
+}
+
+.editjob-input.readonly:focus {
+  border-color: var(--border-subtle);
+  box-shadow: none;
+}
+
+/* 하단 액션 버튼 바 */
+.editjob-action-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px; /* md */
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+  margin-top: 8px;
+}
+
+/* 버튼 스타일 (DESIGN.md: 버튼 반경 4px) */
+.editjob-btn {
+  padding: 10px 32px;
+  font-size: 14px; /* label-md */
+  font-weight: 600;
+  line-height: 20px;
+  border-radius: 4px; /* DESIGN.md 버튼 규격: 4px */
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+}
+
+.editjob-btn:active {
+  transform: scale(0.97);
+}
+
+.editjob-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 확인 (Primary) */
+.editjob-btn-primary {
+  background-color: var(--primary-color);
+  color: #FFFFFF;
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.editjob-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+/* 취소 (Ghost / Outline) */
+.editjob-btn-outline {
+  background-color: var(--surface-lowest);
+  border: 1px solid var(--border-subtle);
+  color: var(--on-surface-variant);
+}
+
+.editjob-btn-outline:hover:not(:disabled) {
+  background-color: var(--neutral-bg);
+  color: var(--on-surface);
+}
+
+/* 피드백 에러 배너 */
+.editjob-error-banner {
+  color: #991B1B;
+  background-color: #FEE2E2;
+  border: 1px solid #FCA5A5;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}

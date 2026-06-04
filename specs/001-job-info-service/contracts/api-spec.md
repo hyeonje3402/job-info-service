@@ -153,3 +153,17 @@
 - **Response Body**:
   - `status`: "success"
   - `data`: `null`
+
+### 전체 사용자 조회
+- **Method**: `GET`
+- **Path**: `/api/v1/users`
+- **Response Body**:
+  - `status`: "success"
+  - `data`: `[ { "email": "", "name": "", "role": "", "status": "" }, ... ]` 목록 (ID, 생성일 등 제외 가능)
+
+### 특정 사용자 상세 조회
+- **Method**: `GET`
+- **Path**: `/api/v1/users/{id}`
+- **Response Body**:
+  - `status`: "success"
+  - `data`: `{ "email": "", "name": "", "role": "", "status": "" }` 객체 (ID, 생성일 등 제외 가능)

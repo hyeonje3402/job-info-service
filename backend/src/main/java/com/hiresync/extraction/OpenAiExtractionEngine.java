@@ -31,37 +31,56 @@ public class OpenAiExtractionEngine {
     public List<Map<String, String>> extractJobPostings(String rawText) {
         ChatClient chatClient = chatClientBuilder.build();
         
-        // 1. PromptTemplate을 사용하여 안전하게 텍스트 주입
-        PromptTemplate template = new PromptTemplate(extractionPrompt);
-        Prompt prompt = template.create(Map.of("text", rawText));
-        
-        // 2. ChatClient를 통해 AI 호출
-        ChatResponse chatResponse = chatClient.prompt(prompt)
-            .call()
-            .chatResponse();
-
-        if (chatResponse != null && chatResponse.getMetadata() != null && chatResponse.getMetadata().getUsage() != null) {
-            log.info("AI Token Usage - Prompt: {}, Completion: {}, Total: {}", 
-                chatResponse.getMetadata().getUsage().getPromptTokens(),
-                chatResponse.getMetadata().getUsage().getCompletionTokens(),
-                chatResponse.getMetadata().getUsage().getTotalTokens());
-        }
-
-        String response = chatResponse.getResult().getOutput().getText();
-
         try {
-            JsonNode root = objectMapper.readTree(response);
-            JsonNode postingsNode = root.get("jobPostings");
-            if (postingsNode != null && postingsNode.isArray()) {
-                List<Map<String, String>> result = new ArrayList<>();
-                for (JsonNode node : postingsNode) {
-                    Map<String, String> map = objectMapper.convertValue(node, Map.class);
-                    result.add(map);
-                }
-                return result;
+            // 1. PromptTemplate을 사용하여 안전하게 텍스트 주입
+            PromptTemplate template = new PromptTemplate(extractionPrompt);
+            Prompt prompt = template.create(Map.of("text", rawText));
+            
+            // 2. ChatClient를 통해 AI 호출
+            ChatResponse chatResponse = chatClient.prompt(prompt)
+                .call()
+                .chatResponse();
+
+            if (chatResponse == null || chatResponse.getResult() == null || chatResponse.getResult().getOutput() == null) {
+                log.error("AI returned null response or no results. rawText length: {}", rawText.length());
+                return Collections.emptyList();
             }
-        } catch (JsonProcessingException e) {
-            log.error("Failed to parse AI response: {}", response, e);
+
+            if (chatResponse.getMetadata() != null && chatResponse.getMetadata().getUsage() != null) {
+                log.info("AI Token Usage - Prompt: {}, Completion: {}, Total: {}", 
+                    chatResponse.getMetadata().getUsage().getPromptTokens(),
+                    chatResponse.getMetadata().getUsage().getCompletionTokens(),
+                    chatResponse.getMetadata().getUsage().getTotalTokens());
+            }
+
+            String response = chatResponse.getResult().getOutput().getText();
+            log.debug("AI Raw Response: {}", response);
+
+            try {
+                JsonNode root = objectMapper.readTree(response);
+                JsonNode postingsNode = root.get("jobPostings");
+                if (postingsNode != null && postingsNode.isArray()) {
+                    List<Map<String, String>> result = new ArrayList<>();
+                    for (JsonNode node : postingsNode) {
+                        Map<String, String> map = objectMapper.convertValue(node, Map.class);
+                        result.add(map);
+                    }
+                    return result;
+                } else if (root.isArray()) {
+                    // Fallback for array response
+                    List<Map<String, String>> result = new ArrayList<>();
+                    for (JsonNode node : root) {
+                        Map<String, String> map = objectMapper.convertValue(node, Map.class);
+                        result.add(map);
+                    }
+                    return result;
+                }
+            } catch (JsonProcessingException e) {
+                log.error("Failed to parse AI response: {}", response, e);
+            }
+        } catch (Exception e) {
+            log.error("Exception during AI extraction: {}", e.getMessage(), e);
+            throw e; // Rethrow to be caught by Controller
         }
 
         return Collections.emptyList();

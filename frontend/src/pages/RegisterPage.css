@@ -1,0 +1,209 @@
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&family=Noto+Sans:wght@400;600&display=swap');
+
+/* 취업 정보 관리 시스템 사용자 등록 디자인 토큰 (DESIGN.md 규격 준수) */
+.register-page-root {
+  --primary-color: #1A5AD7;
+  --secondary-color: #64748B;
+  --neutral-bg: #F8FAFC;
+  --surface-lowest: #FFFFFF;
+  --border-subtle: #E2E8F0;
+  --on-surface: #191C1E;
+  --on-surface-variant: #434654;
+  
+  --font-title: 'Hanken Grotesk', 'Noto Sans KR', sans-serif;
+  --font-body: 'Noto Sans', 'Noto Sans KR', sans-serif;
+  
+  --shadow-sm: 0px 4px 12px rgba(0, 0, 0, 0.05);
+  
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--neutral-bg);
+  font-family: var(--font-body);
+  color: var(--on-surface);
+  box-sizing: border-box;
+  padding: 16px;
+}
+
+.register-page-root * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* 메인 사용자 등록 카드 */
+.register-card {
+  width: 100%;
+  max-width: 480px; /* Stitch 스크린 max-w-480px 반영 */
+  background-color: var(--surface-lowest);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px; /* DESIGN.md 카드 반경: 8px */
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 헤더 스타일 */
+.register-header {
+  padding: 32px 24px 16px 24px; /* pt-xl, pb-md, px-lg 여백 */
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.register-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.register-brand-icon {
+  font-size: 28px;
+  color: var(--primary-color);
+}
+
+.register-brand-text {
+  font-family: var(--font-title);
+  font-size: 20px; /* title-md */
+  font-weight: 700;
+  color: var(--primary-color);
+  letter-spacing: -0.5px;
+}
+
+.register-title {
+  font-family: var(--font-title);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  color: var(--on-surface);
+  margin-top: 8px;
+}
+
+@media (min-width: 768px) {
+  .register-title {
+    font-size: 32px; /* headline-lg */
+    line-height: 40px;
+  }
+}
+
+.register-subtitle {
+  font-size: 14px; /* body-sm */
+  color: var(--on-surface-variant);
+  margin-top: 4px;
+}
+
+/* 폼 영역 */
+.register-form {
+  padding: 24px; /* lg (24px) */
+  display: flex;
+  flex-direction: column;
+  gap: 24px; /* lg (24px) */
+}
+
+.register-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* xs (4px) */
+}
+
+.register-label {
+  font-size: 14px; /* label-md */
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--on-surface);
+}
+
+.register-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.register-input-icon {
+  position: absolute;
+  left: 16px; /* md (16px) */
+  color: var(--secondary-color);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register-input {
+  width: 100%;
+  padding: 16px 16px 16px 44px; /* 내부 아이콘 영역(44px) 확보 */
+  font-size: 16px; /* body-md */
+  font-family: var(--font-body);
+  border-radius: 4px; /* DESIGN.md 인풋 반경: 4px */
+  border: 1px solid var(--border-subtle);
+  background-color: var(--surface-lowest);
+  color: var(--on-surface);
+  transition: all 0.2s ease-in-out;
+  outline: none;
+}
+
+.register-input::placeholder {
+  color: var(--secondary-color);
+  opacity: 0.7;
+}
+
+/* 입력 필드 포커스 효과 (DESIGN.md 가이드) */
+.register-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(26, 90, 215, 0.2);
+}
+
+/* 하단 액션 버튼 행 */
+.register-action-row {
+  display: flex;
+  gap: 16px; /* md (16px) */
+  padding-top: 16px; /* md (16px) */
+  margin-top: 8px; /* sm (8px) */
+  border-top: 1px solid var(--border-subtle);
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* 버튼 규격 */
+.reg-btn {
+  padding: 8px 24px; /* px-lg py-sm */
+  font-size: 14px; /* label-md */
+  font-weight: 600;
+  line-height: 20px;
+  border-radius: 4px; /* DESIGN.md 버튼 반경: 4px */
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  font-family: var(--font-body);
+}
+
+.reg-btn:active {
+  transform: scale(0.95); /* 마이크로 스케일 모션 */
+}
+
+/* 확인 버튼 */
+.reg-btn-primary {
+  background-color: var(--primary-color);
+  color: #FFFFFF;
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.reg-btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+/* 취소 버튼 */
+.reg-btn-outline {
+  background-color: var(--surface-lowest);
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+}
+
+.reg-btn-outline:hover {
+  background-color: #f2f7ff;
+}

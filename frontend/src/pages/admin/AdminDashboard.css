@@ -1,0 +1,436 @@
+/* 관리자 대시보드 전용 Vanilla CSS (DESIGN.md 가이드 준수) */
+
+.dashboard-root {
+  --primary-color: #1A5AD7;
+  --secondary-color: #64748B;
+  --neutral-bg: #F8FAFC;
+  --surface-lowest: #FFFFFF;
+  --border-subtle: #E2E8F0;
+  --on-surface: #191C1E;
+  --on-surface-variant: #434654;
+  --success-color: #10B981;
+  --success-bg: #D1FAE5;
+  --success-text: #065F46;
+  
+  --font-title: 'Hanken Grotesk', sans-serif;
+  --font-body: 'Noto Sans', sans-serif;
+  
+  font-family: var(--font-body);
+  color: var(--on-surface);
+  min-height: 100vh;
+  background-color: var(--neutral-bg);
+  box-sizing: border-box;
+}
+
+.dashboard-root * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* 전체 래퍼 및 반응형 마진 확보 */
+.dashboard-wrapper {
+  width: 100%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px; /* lg (24px) */
+}
+
+@media (min-width: 1025px) {
+  .dashboard-wrapper {
+    padding: 32px; /* 데스크톱 기준 패딩 xl(32px) */
+    gap: 32px;
+  }
+}
+
+/* 상단 앱바 탑바 */
+.dashboard-top-appbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--surface-lowest);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 16px 24px;
+  margin: -16px -16px 16px -16px; /* 래퍼 패딩 상쇄 */
+}
+
+@media (min-width: 1025px) {
+  .dashboard-top-appbar {
+    margin: -32px -32px 16px -32px;
+  }
+}
+
+.appbar-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.appbar-logo {
+  font-size: 24px;
+  color: var(--primary-color);
+}
+
+.appbar-text {
+  font-family: var(--font-title);
+  font-size: 20px; /* title-md */
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+/* 대시보드 타이틀 헤더 */
+.dashboard-header-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-main-title {
+  font-family: var(--font-title);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  color: var(--on-surface);
+}
+
+@media (min-width: 768px) {
+  .dashboard-main-title {
+    font-size: 32px; /* headline-lg */
+    line-height: 40px;
+  }
+}
+
+.dashboard-main-subtitle {
+  font-size: 16px; /* body-md */
+  color: var(--on-surface-variant);
+  margin-top: 4px;
+}
+
+/* Bento Grid 구조 */
+.bento-grid-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px; /* md (16px) */
+}
+
+@media (min-width: 768px) {
+  .bento-grid-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px; /* lg (24px) */
+  }
+}
+
+@media (min-width: 1025px) {
+  .bento-grid-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* 1. Stat Card 개별 스타일 */
+.bento-stat-card {
+  background-color: var(--surface-lowest);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px; /* DESIGN.md 카드 반경: 8px */
+  padding: 24px; /* lg (24px) 패딩 */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 160px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+}
+
+.bento-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05); /* Level 2 호버 쉐도우 */
+  border-color: var(--primary-color);
+}
+
+/* 우상단 배경 아이콘 */
+.bento-stat-bg-icon {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  opacity: 0.08;
+  color: var(--primary-color);
+  transition: opacity 0.3s ease;
+}
+
+.bento-stat-card:hover .bento-stat-bg-icon {
+  opacity: 0.15;
+}
+
+.stat-label {
+  font-size: 14px; /* label-md */
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-family: var(--font-title);
+  font-size: 48px; /* display-lg */
+  font-weight: 700;
+  line-height: 56px;
+  color: var(--on-surface);
+}
+
+.stat-trend-footer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px; /* label-sm */
+  margin-top: 16px;
+}
+
+.trend-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px;
+  border-radius: 9999px; /* Status Pill radius */
+  font-weight: 600;
+  background-color: var(--success-bg);
+  color: var(--success-text);
+}
+
+.trend-compare-text {
+  color: var(--on-surface-variant);
+}
+
+/* 2. 방문자 차트 카드 (Bento Grid 3컬럼 확장) */
+.bento-chart-card {
+  background-color: var(--surface-lowest);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  .bento-chart-card {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 1025px) {
+  .bento-chart-card {
+    grid-column: span 3; /* 데스크톱에서 가로 전체 확장 */
+  }
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.chart-title {
+  font-family: var(--font-title);
+  font-size: 20px; /* title-md */
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.chart-filter-btn {
+  background-color: var(--neutral-bg);
+  border: 1px solid var(--border-subtle);
+  color: var(--primary-color);
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px; /* label-sm */
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.chart-filter-btn:hover {
+  background-color: #eceef0;
+}
+
+/* 차트 그래픽 */
+.chart-visual-wrapper {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  background-color: var(--surface-lowest);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  margin-top: 8px;
+  padding: 24px 16px 32px 48px; /* Y축 라벨 공간 48px, X축 32px */
+  display: flex;
+  align-items: flex-end;
+  height: 200px;
+}
+
+/* Y축 격자 라벨 */
+.chart-y-axis-labels {
+  position: absolute;
+  left: 12px;
+  top: 24px;
+  bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--secondary-color);
+  font-weight: 600;
+}
+
+/* 가로 격자선 */
+.chart-grid-lines {
+  position: absolute;
+  left: 48px;
+  right: 16px;
+  top: 24px;
+  bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.grid-line {
+  width: 100%;
+  border-top: 1px dashed var(--border-subtle);
+  opacity: 0.8;
+}
+
+/* 바 차트 본체 */
+.chart-bars-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+}
+
+.chart-bar-item {
+  width: 8%;
+  background-color: #d0e1fb; /* 비활성 테마 색상 */
+  border-radius: 2px 2px 0 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.chart-bar-item:hover {
+  background-color: var(--primary-color);
+}
+
+.chart-bar-item.active {
+  background-color: var(--primary-color);
+}
+
+/* 호버 시 툴팁 기능 */
+.chart-bar-item::after {
+  content: attr(data-value);
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%) scale(0.8);
+  background-color: var(--on-surface);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.chart-bar-item:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+/* X축 라벨 */
+.chart-x-axis-labels {
+  position: absolute;
+  bottom: 8px;
+  left: 48px;
+  right: 16px;
+  display: flex;
+  justify-content: space-around;
+  font-size: 12px;
+  color: var(--secondary-color);
+  font-weight: 600;
+}
+
+/* 3. 퀵 링크 카드 (Bento Grid 배치) */
+.bento-quick-link {
+  background-color: var(--surface-lowest);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  color: var(--on-surface);
+  transition: all 0.25s ease-in-out;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+}
+
+.bento-quick-link:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.quick-link-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.quick-link-icon-container {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--neutral-bg);
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.bento-quick-link:hover .quick-link-icon-container {
+  background-color: var(--active-bg);
+  color: var(--active-text);
+}
+
+.quick-link-title {
+  font-size: 14px; /* label-md */
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.quick-link-subtitle {
+  font-size: 12px; /* body-sm */
+  color: var(--on-surface-variant);
+  margin-top: 2px;
+}
+
+.quick-link-arrow {
+  color: var(--secondary-color);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.bento-quick-link:hover .quick-link-arrow {
+  color: var(--primary-color);
+  transform: translateX(4px);
+}

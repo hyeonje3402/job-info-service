@@ -1,146 +1,193 @@
-import React, { useState, useEffect, useActionState } from 'react';
-import axios from 'axios';
+import React, { useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import './AdminDashboard.css';
 
-const AdminDashboard = () => {
-  const [jobPostings, setJobPostings] = useState([]);
-  const [file, setFile] = useState(null);
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(true);
+function AdminDashboard() {
+  const navigate = useNavigate();
 
+  // 대시보드 접근 시 로그인 여부 간단 체크 (선택 사항)
   useEffect(() => {
-    fetchJobPostings();
-  }, []);
-
-  const fetchJobPostings = async () => {
-    try {
-      const response = await axios.get('/api/v1/jobs');
-      setJobPostings(response.data.data?.content || []);
-      setLoading(false);
-    } catch (err) {
-      console.error('Failed to fetch job postings', err);
-      setLoading(false);
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      console.warn("로그인 토큰이 없어 로그인 페이지로 리다이렉트합니다.");
+      // 강제 리다이렉션을 켜둘 수 있으나, 유저 편의를 위해 일단 보류하거나 가벼운 알림으로 대체 가능
+      // 여기서는 데모 목적을 위해 바로 튕기지 않고 확인만 처리합니다.
     }
-  };
+  }, [navigate]);
 
-  // URL 등록 Action
-  const [urlState, urlAction, isUrlPending] = useActionState(async (prevState, formData) => {
-    const urlValue = formData.get('url');
-    try {
-      await axios.post('/api/v1/sources/url', { url: urlValue });
-      fetchJobPostings();
-      return { success: true, message: 'URL이 성공적으로 등록되었습니다.' };
-    } catch (err) {
-      return { success: false, message: 'URL 등록 중 오류가 발생했습니다.' };
-    }
-  }, null);
-
-  // PDF 업로드 처리
-  const handlePdfUpload = async (e) => {
-    e.preventDefault();
-    if (!file) {
-      setMessage('파일을 선택해주세요.');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', file); // 백엔드 파라미터명이 'file'임
-
-    try {
-      await axios.post('/api/v1/sources/pdf', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        withCredentials: true
-      });
-      setMessage('PDF가 성공적으로 분석 및 등록되었습니다.');
-      fetchJobPostings();
-    } catch (err) {
-      setMessage('PDF 분석 중 오류가 발생했습니다.');
-    }
-  };
-
-  // 삭제 처리
-  const handleDelete = async (id) => {
-    if (!window.confirm('정말 삭제하시겠습니까?')) return;
-    try {
-      await axios.delete(`/api/v1/jobs/${id}`, { withCredentials: true });
-      fetchJobPostings();
-      alert('삭제되었습니다.');
-    } catch (err) {
-      alert('삭제 중 오류가 발생했습니다.');
-    }
-  };
-
-  // 승인 처리 (Status PENDING -> APPROVED)
-  const handleApprove = async (job) => {
-    try {
-      await axios.put(`/api/v1/jobs/${job.id}`, { ...job, status: 'APPROVED' }, { withCredentials: true });
-      fetchJobPostings();
-      alert('승인되었습니다.');
-    } catch (err) {
-      alert('승인 중 오류가 발생했습니다.');
-    }
-  };
+  // 방문자 통계 목업 데이터
+  const visitorData = [
+    { day: '월', value: '300명', height: '30%' },
+    { day: '화', value: '500명', height: '50%' },
+    { day: '수', value: '400명', height: '40%' },
+    { day: '목', value: '800명', height: '80%', active: true }, // 목요일이 가장 높은 주 피크
+    { day: '금', value: '600명', height: '60%' },
+    { day: '토', value: '700명', height: '70%' },
+    { day: '일', value: '450명', height: '45%' },
+  ];
 
   return (
-    <div className="admin-dashboard">
-      <h2>관리자 대시보드</h2>
+    <div className="dashboard-root">
+      <div className="dashboard-wrapper">
+        
+        {/* 상단 앱바 탑바 (모바일 뷰에서 주로 브랜딩용으로 보임) */}
+        <header className="dashboard-top-appbar">
+          <div className="appbar-title-group">
+            <span className="material-symbols-outlined appbar-logo" style={{ fontVariationSettings: "'FILL' 1" }}>
+              work_history
+            </span>
+            <h1 className="appbar-text">CareerAdmin</h1>
+          </div>
+        </header>
 
-      <div className="admin-grid">
-        <section className="admin-section">
-          <h3>신규 등록</h3>
-          <div className="upload-box">
-            <h4>URL 등록</h4>
-            <form action={urlAction}>
-              <input type="url" name="url" placeholder="URL 입력" required />
-              <button type="submit" disabled={isUrlPending}>
-                {isUrlPending ? '등록 중...' : 'URL 등록'}
+        {/* 대시보드 타이틀 헤더 */}
+        <section className="dashboard-header-section">
+          <h2 className="dashboard-main-title">대시보드 개요</h2>
+          <p className="dashboard-main-subtitle">시스템의 주요 지표와 최근 활동을 확인하세요.</p>
+        </section>
+
+        {/* Bento Grid 구조 */}
+        <div className="bento-grid-container">
+          
+          {/* Stat Card 1: Users */}
+          <div className="bento-stat-card">
+            {/* 우상단 배경 아이콘 */}
+            <span className="material-symbols-outlined bento-stat-bg-icon" style={{ fontSize: '64px' }}>
+              group
+            </span>
+            <div>
+              <h3 className="stat-label">등록된 사용자 수</h3>
+              <div className="stat-value">1,248</div>
+            </div>
+            <div className="stat-trend-footer">
+              <span className="trend-badge">
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                  trending_up
+                </span>
+                <span>+12%</span>
+              </span>
+              <span className="trend-compare-text">지난 달 대비</span>
+            </div>
+          </div>
+
+          {/* Stat Card 2: Jobs */}
+          <div className="bento-stat-card">
+            {/* 우상단 배경 아이콘 */}
+            <span className="material-symbols-outlined bento-stat-bg-icon" style={{ fontSize: '64px' }}>
+              work
+            </span>
+            <div>
+              <h3 className="stat-label">등록된 취업정보의 수</h3>
+              <div className="stat-value">342</div>
+            </div>
+            <div className="stat-trend-footer">
+              <span className="trend-badge">
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                  trending_up
+                </span>
+                <span>+5%</span>
+              </span>
+              <span className="trend-compare-text">이번 주 신규</span>
+            </div>
+          </div>
+
+          {/* Chart Card: Visitor Stats */}
+          <div className="bento-chart-card">
+            <div className="chart-header">
+              <h3 className="chart-title">방문자 통계</h3>
+              <button className="chart-filter-btn" onClick={() => alert('기간 필터 기능 준비 중')}>
+                <span>이번 주</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                  expand_more
+                </span>
               </button>
-            </form>
-            {urlState && <p className={urlState.success ? 'success' : 'error'}>{urlState.message}</p>}
-          </div>
+            </div>
 
-          <div className="upload-box">
-            <h4>PDF 업로드</h4>
-            <form onSubmit={handlePdfUpload}>
-              <input type="file" accept=".pdf" onChange={(e) => setFile(e.target.files[0])} required />
-              <button type="submit">PDF 분석</button>
-            </form>
-            {message && <p className="message">{message}</p>}
-          </div>
-        </section>
+            {/* 차트 시각화 영역 */}
+            <div className="chart-visual-wrapper">
+              
+              {/* Y축 라벨 */}
+              <div className="chart-y-axis-labels">
+                <span>1k</span>
+                <span>500</span>
+                <span>0</span>
+              </div>
 
-        <section className="admin-section">
-          <h3>채용 정보 관리</h3>
-          {loading ? <p>로딩 중...</p> : (
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>회사명</th>
-                  <th>직무</th>
-                  <th>상태</th>
-                  <th>관리</th>
-                </tr>
-              </thead>
-              <tbody>
-                {jobPostings.map(job => (
-                  <tr key={job.id}>
-                    <td>{job.companyName}</td>
-                    <td>{job.position}</td>
-                    <td><span className={`status-badge ${job.status.toLowerCase()}`}>{job.status}</span></td>
-                    <td>
-                      {job.status === 'PENDING' && (
-                        <button onClick={() => handleApprove(job)} className="btn-approve">승인</button>
-                      )}
-                      <button onClick={() => handleDelete(job.id)} className="btn-delete">삭제</button>
-                    </td>
-                  </tr>
+              {/* 가로 점선 격자 */}
+              <div className="chart-grid-lines">
+                <div className="grid-line"></div>
+                <div className="grid-line"></div>
+                <div className="grid-line"></div>
+              </div>
+
+              {/* 차트 바 목록 */}
+              <div className="chart-bars-container">
+                {visitorData.map((data, idx) => (
+                  <div 
+                    key={idx}
+                    className={`chart-bar-item ${data.active ? 'active' : ''}`}
+                    style={{ height: data.height }}
+                    data-value={data.value}
+                  ></div>
                 ))}
-              </tbody>
-            </table>
-          )}
-        </section>
+              </div>
+
+              {/* X축 라벨 */}
+              <div className="chart-x-axis-labels">
+                {visitorData.map((data, idx) => (
+                  <span key={idx}>{data.day}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Link 1: 취업정보목록 */}
+          <Link to="/" className="bento-quick-link">
+            <div className="quick-link-left">
+              <div className="quick-link-icon-container">
+                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  work
+                </span>
+              </div>
+              <div>
+                <h3 className="quick-link-title">취업정보목록</h3>
+                <p className="quick-link-subtitle">공고 관리 및 승인</p>
+              </div>
+            </div>
+            <span className="material-symbols-outlined quick-link-arrow">
+              arrow_forward
+            </span>
+          </Link>
+
+          {/* Quick Link 2: 사용자목록 */}
+          <a 
+            href="#" 
+            className="bento-quick-link"
+            onClick={(e) => {
+              e.preventDefault();
+              alert('사용자 목록 관리 기능은 후속 스프린트에서 구현 예정입니다.');
+            }}
+          >
+            <div className="quick-link-left">
+              <div className="quick-link-icon-container">
+                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  group
+                </span>
+              </div>
+              <div>
+                <h3 className="quick-link-title">사용자목록</h3>
+                <p className="quick-link-subtitle">구직자 및 기업회원 관리</p>
+              </div>
+            </div>
+            <span className="material-symbols-outlined quick-link-arrow">
+              arrow_forward
+            </span>
+          </a>
+
+        </div>
       </div>
     </div>
   );
-};
+}
 
 export default AdminDashboard;

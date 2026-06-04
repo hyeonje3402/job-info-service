@@ -15,11 +15,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -50,7 +52,7 @@ public class JobPostingController {
     }
 
     @GetMapping("/jobs")
-    public ResponseEntity<Map<String, Object>> getAllJobs(Pageable pageable) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getAllJobs(Pageable pageable) {
         if (pageable.getPageNumber() < 0) {
             throw new IllegalArgumentException("페이지 번호는 0 이상이어야 합니다.");
         }
@@ -63,7 +65,14 @@ public class JobPostingController {
                 .map(JobResponse::fromEntity)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(Map.of("data", Map.of("content", dtoList)));
+        Map<String, Object> data = new HashMap<>();
+        data.put("content", dtoList);
+        data.put("totalElements", jobs.getTotalElements());
+        data.put("totalPages", jobs.getTotalPages());
+        data.put("number", jobs.getNumber());
+        data.put("size", jobs.getSize());
+
+        return ResponseEntity.ok(ApiResponse.success(data));
     }
 
     @GetMapping("/jobs/{id}")
@@ -75,6 +84,10 @@ public class JobPostingController {
 
     @PostMapping("/sources/url")
     public ResponseEntity<ApiResponse<?>> registerUrl(@RequestBody Map<String, String> request) {
+        if (request == null || request.get("url") == null || request.get("url").isBlank()) {
+            return ResponseEntity.ok(ApiResponse.success(List.of()));
+        }
+        
         String url = request.get("url");
         long startTime = System.currentTimeMillis();
         
@@ -85,8 +98,19 @@ public class JobPostingController {
         source = sourceRepository.save(source);
 
         try {
-            // 1. URL 스크래핑
-            String rawText = urlScrapingService.scrapeUrl(url);
+            // 1. URL 스크래핑 (사람인 URL인 경우 전용 크롤러 사용 시도)
+            String rawText;
+            if (url.contains("saramin.co.kr")) {
+                log.info("Using SaraminCrawlerService for URL: {}", url);
+                rawText = saraminCrawlerService.crawlJobPosting(url);
+                // 크롤링 실패 시 기본 스크래퍼로 폴백
+                if (rawText == null || rawText.isBlank() || rawText.startsWith("크롤링 중 오류 발생")) {
+                    log.warn("SaraminCrawlerService failed or returned error. Falling back to UrlScrapingService.");
+                    rawText = urlScrapingService.scrapeUrl(url);
+                }
+            } else {
+                rawText = urlScrapingService.scrapeUrl(url);
+            }
 
             // 2. AI 추출 엔진 실행
             List<Map<String, String>> extractedData = extractionEngine.extractJobPostings(rawText);
@@ -94,55 +118,67 @@ public class JobPostingController {
             if (extractedData.isEmpty()) {
                 updateSource(source, "FAILED");
                 saveExtractionLog(source, "gpt-4o", "AI_EMPTY_RESPONSE", startTime, "No job postings extracted from URL");
-                return ResponseEntity.ok(new ApiResponse<>("error", "No data extracted from URL"));
+                return ResponseEntity.ok(ApiResponse.success(List.of()));
             }
 
             // 3. ExtractionLog 저장
             saveExtractionLog(source, "gpt-4o", extractedData.toString(), startTime, null);
 
-            // 4. JobPosting 저장 (첫 번째 항목 반환)
-            JobResponse firstSavedDto = null;
+            // 4. Source 상태를 SUCCESS로 먼저 업데이트 (DTO에 반영되도록)
+            updateSource(source, "SUCCESS");
+
+            // 5. JobPosting 저장 및 결과 리스트 생성
+            List<JobResponse> savedDtos = new java.util.ArrayList<>();
             for (Map<String, String> data : extractedData) {
                 JobPosting posting = new JobPosting();
-                posting.setCompanyName(data.getOrDefault("companyName", null));
-                posting.setLocation(data.getOrDefault("location", null));
+                
+                String companyName = safeGet(data, "companyName");
+                posting.setCompanyName(companyName != null && !companyName.isBlank() ? companyName : "Unknown Company");
+                
+                posting.setLocation(safeGet(data, "location"));
                 posting.setPosition(data.getOrDefault("position", "Unknown"));
-                posting.setRequirements(data.getOrDefault("requirements", null));
+                posting.setRequirements(safeGet(data, "requirements"));
                 
-                // 날짜 처리: AI가 준 데이터가 있으면 파싱, 없으면 null 유지
-                if (data.get("openingDate") != null && !data.get("openingDate").equalsIgnoreCase("null")) {
+                // 날짜 처리
+                String openingDateStr = safeGet(data, "openingDate");
+                if (openingDateStr != null && !openingDateStr.equalsIgnoreCase("null") && !openingDateStr.isBlank()) {
                     try {
-                        posting.setOpeningDate(LocalDate.parse(data.get("openingDate")));
+                        posting.setOpeningDate(LocalDate.parse(openingDateStr));
                     } catch (Exception e) {
-                        log.warn("Failed to parse openingDate: {}", data.get("openingDate"));
+                        log.warn("Failed to parse openingDate: {}", openingDateStr);
                     }
                 }
                 
-                if (data.get("closingDate") != null && !data.get("closingDate").equalsIgnoreCase("null")) {
+                String closingDateStr = safeGet(data, "closingDate");
+                if (closingDateStr != null && !closingDateStr.equalsIgnoreCase("null") && !closingDateStr.isBlank()) {
                     try {
-                        posting.setClosingDate(LocalDate.parse(data.get("closingDate")));
+                        posting.setClosingDate(LocalDate.parse(closingDateStr));
                     } catch (Exception e) {
-                        log.warn("Failed to parse closingDate: {}", data.get("closingDate"));
+                        log.warn("Failed to parse closingDate: {}", closingDateStr);
                     }
                 }
                 
-                posting.setApplicationMethod(data.getOrDefault("applicationMethod", null));
-                posting.setExpectedSalary(data.getOrDefault("expectedSalary", null));
+                posting.setApplicationMethod(safeGet(data, "applicationMethod"));
+                posting.setExpectedSalary(safeGet(data, "expectedSalary"));
                 posting.setStatus("PENDING");
                 posting.setSource(source);
 
                 JobPosting saved = jobPostingService.save(posting);
-                if (firstSavedDto == null) firstSavedDto = JobResponse.fromEntity(saved);
+                savedDtos.add(JobResponse.fromEntity(saved));
             }
 
-            updateSource(source, "SUCCESS");
-            return ResponseEntity.ok(ApiResponse.success(firstSavedDto));
+            return ResponseEntity.ok(ApiResponse.success(savedDtos));
 
+        } catch (IllegalArgumentException e) {
+            log.warn("Client error during URL registration: {}", e.getMessage());
+            updateSource(source, "FAILED");
+            saveExtractionLog(source, "gpt-4o", "CLIENT_ERROR", startTime, e.getMessage());
+            return ResponseEntity.ok(ApiResponse.success(List.of()));
         } catch (Exception e) {
-            log.error("Error during URL registration: {}", e.getMessage(), e);
+            log.error("Unexpected error during URL registration: {}", e.getMessage(), e);
             updateSource(source, "FAILED");
             saveExtractionLog(source, "gpt-4o", "ERROR", startTime, e.getMessage());
-            return ResponseEntity.status(500).body(new ApiResponse<>("error", "Failed to process URL: " + e.getMessage()));
+            return ResponseEntity.ok(ApiResponse.success(List.of()));
         }
     }
 
@@ -183,6 +219,12 @@ public class JobPostingController {
     public ResponseEntity<ApiResponse<Void>> deleteJob(@PathVariable("id") Long id) {
         jobPostingService.deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    private String safeGet(Map<String, ?> data, String key) {
+        Object value = data.get(key);
+        if (value == null) return null;
+        return String.valueOf(value);
     }
 
     private void updateSource(Source s, String status) {

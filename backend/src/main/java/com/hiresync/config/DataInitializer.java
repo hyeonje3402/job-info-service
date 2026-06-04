@@ -25,6 +25,15 @@ public class DataInitializer {
                 userService.registerUser(admin);
             }
 
+            if (userService.findByEmail("newuser@example.com").isEmpty()) {
+                User user = new User();
+                user.setEmail("newuser@example.com");
+                user.setPassword("1234");
+                user.setName("General User");
+                user.setRole("GENERAL");
+                userService.registerUser(user);
+            }
+
             if (jobPostingRepository.count() == 0) {
                 // Insert 6 dummy records to make the next one ID 7
                 for (int i = 1; i <= 6; i++) {

@@ -1,6 +1,7 @@
 package com.hiresync.services;
 
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.safety.Safelist;
@@ -33,9 +34,12 @@ public class UrlScrapingService {
             
             log.info("Successfully scraped text from {}. Length: {}", url, text.length());
             return text;
+        } catch (HttpStatusException e) {
+            log.error("HTTP error fetching URL: {}. Status: {}, Message: {}", url, e.getStatusCode(), e.getMessage());
+            throw new IllegalArgumentException("URL 접근 오류 (" + e.getStatusCode() + "): 해당 페이지에 접근할 수 없거나 존재하지 않습니다.");
         } catch (IOException e) {
-            log.error("Failed to scrape URL: {}", url, e);
-            throw new RuntimeException("URL 스크래핑 실패: " + e.getMessage());
+            log.error("IO error fetching URL: {}", url, e);
+            throw new RuntimeException("URL 연결 실패: " + e.getMessage());
         }
     }
 }

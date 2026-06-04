@@ -1,5 +1,6 @@
 package com.hiresync.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hiresync.security.EmailConverter;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -17,6 +18,7 @@ public class User {
     @Column(nullable = false, unique = true, length = 255) // Increased length for encrypted value
     private String email;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
 

@@ -1,0 +1,219 @@
+/* 공용 네비게이션 (Sidebar & Mobile Bottom Bar) 전용 Vanilla CSS (DESIGN.md 가이드 준수) */
+
+.sidebar-root {
+  --primary-color: #1A5AD7;
+  --secondary-color: #64748B;
+  --neutral-bg: #F8FAFC;
+  --surface-lowest: #FFFFFF;
+  --border-subtle: #E2E8F0;
+  --on-surface: #191C1E;
+  --on-surface-variant: #434654;
+  --active-bg: #d0e1fb; /* 10% primary bg tint */
+  --active-text: #0043ae;
+  
+  --font-title: 'Hanken Grotesk', sans-serif;
+  --font-body: 'Noto Sans', sans-serif;
+  
+  box-sizing: border-box;
+}
+
+.sidebar-root * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ==========================================================================
+   1. 데스크톱 사이드바 네비게이션 스타일 (min-width: 1025px)
+   ========================================================================== */
+.desktop-sidebar {
+  display: none; /* 기본 숨김 (모바일 우선 대응) */
+}
+
+@media (min-width: 1025px) {
+  .desktop-sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 280px; /* DESIGN.md 고정 280px 규칙 */
+    height: 100vh;
+    background-color: var(--surface-lowest);
+    border-right: 1px solid var(--border-subtle);
+    padding: 24px 0;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 100;
+    font-family: var(--font-body);
+    flex-shrink: 0;
+  }
+
+  /* 프로필 영역 */
+  .sidebar-profile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 16px;
+    margin-bottom: 32px; /* xl (32px) 마진 */
+  }
+
+  .profile-avatar-container {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    background-color: var(--neutral-bg);
+  }
+
+  .profile-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .profile-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .profile-name {
+    font-family: var(--font-title);
+    font-size: 16px; /* title-md 축소형 */
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+
+  .profile-role {
+    font-size: 12px; /* label-sm */
+    color: var(--on-surface-variant);
+    margin-top: 2px;
+  }
+
+  .profile-version {
+    font-size: 11px;
+    color: var(--secondary-color);
+    margin-top: 2px;
+    font-weight: 600;
+  }
+
+  /* 네비게이션 메뉴 리스트 */
+  .sidebar-menu-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px; /* xs (4px) */
+    list-style: none;
+    flex: 1;
+    padding: 0 8px;
+  }
+
+  .menu-link {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 16px;
+    color: var(--on-surface-variant);
+    text-decoration: none;
+    border-radius: 9999px; /* 완전 둥근 캡슐형 */
+    font-size: 14px; /* label-md */
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+    margin: 0 8px;
+  }
+
+  .menu-link:hover {
+    background-color: var(--neutral-bg);
+    color: var(--on-surface);
+  }
+
+  .menu-link.active {
+    background-color: var(--active-bg);
+    color: var(--active-text);
+  }
+
+  .menu-link-icon {
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   2. 모바일 하단 탭 네비게이션 바 스타일 (max-width: 1024px)
+   ========================================================================== */
+.mobile-bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  background-color: var(--surface-lowest);
+  border-top: 1px solid var(--border-subtle);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+  z-index: 999;
+  padding: 8px 16px;
+  font-family: var(--font-body);
+}
+
+@media (min-width: 1025px) {
+  .mobile-bottom-nav {
+    display: none; /* 데스크톱에서는 숨김 */
+  }
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--on-surface-variant);
+  text-decoration: none;
+  padding: 4px 8px;
+  transition: all 0.2s ease;
+}
+
+.mobile-nav-item:hover {
+  color: var(--primary-color);
+}
+
+.mobile-nav-icon {
+  font-size: 22px;
+}
+
+.mobile-nav-label {
+  font-size: 11px; /* label-sm 축소형 */
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* 모바일 활성 하이라이트 스타일 */
+.mobile-nav-item.active {
+  color: var(--primary-color);
+}
+
+.mobile-nav-item.active-pill {
+  background-color: var(--active-bg);
+  color: var(--active-text) !important;
+  border-radius: 9999px;
+  padding: 4px 16px;
+  transform: scale(1.05);
+}
+
+/* ==========================================================================
+   3. 모바일 통합 레이아웃 호환 룰 (content-container 겹침 방지)
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .app-container {
+    flex-direction: column !important;
+  }
+  
+  .content-container {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 16px !important;
+    padding-bottom: 88px !important; /* 하단 고정 탭 네비게이션 높이(64px) + 여유 */
+  }
+}
