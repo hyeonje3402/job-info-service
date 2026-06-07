@@ -9,6 +9,8 @@ import JobDetailPage from './pages/JobDetailPage';
 import JobAddPage from './pages/JobAddPage';
 import JobEditPage from './pages/JobEditPage';
 import UserListPage from './pages/admin/UserListPage';
+import UserCreatePage from './pages/admin/UserCreatePage';
+import UserEditPage from './pages/admin/UserEditPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import './index.css';
 
@@ -28,6 +30,8 @@ function AppContent() {
           <Route path="/jobs/new" element={<JobAddPage />} />
           <Route path="/jobs/:id/edit" element={<JobEditPage />} />
           <Route path="/users-management" element={<UserListPage />} />
+          <Route path="/users-management/add" element={<UserCreatePage />} />
+          <Route path="/users-management/:id/edit" element={<UserEditPage />} />
           <Route path="/job-postings/:id" element={<JobDetailPage />} />
           <Route path="/admin" element={<AdminDashboard />} />
         </Routes>

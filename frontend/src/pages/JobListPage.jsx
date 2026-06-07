@@ -66,6 +66,22 @@ function JobListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
+  const [toastMessage, setToastMessage] = useState('');
+  const [showToastVisible, setShowToastVisible] = useState(false);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setShowToastVisible(true);
+  };
+
+  useEffect(() => {
+    if (showToastVisible) {
+      const timer = setTimeout(() => {
+        setShowToastVisible(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showToastVisible]);
 
   // 백엔드 API 연동
   useEffect(() => {
@@ -134,6 +150,32 @@ function JobListPage() {
       selectedJobIds.includes(job.id) ? { ...job, status: 'APPROVED', rejectedReason: undefined } : job
     ));
     setSelectedJobIds([]);
+  };
+
+  // 상태 변경 PATCH API 호출
+  const handleStatusChange = async (jobId, newStatus) => {
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND || '';
+      const response = await axios.patch(
+        `${backendUrl}/api/v1/jobs/${jobId}/status`,
+        { status: newStatus },
+        { withCredentials: true }
+      );
+
+      if (response.data && response.data.status === 'success') {
+        setJobs(prevJobs =>
+          prevJobs.map(job =>
+            job.id === jobId ? { ...job, status: newStatus } : job
+          )
+        );
+        showToast('상태가 변경되었습니다');
+      } else {
+        alert('상태 변경에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('Failed to change status', err);
+      alert('상태 변경 중 오류가 발생했습니다.');
+    }
   };
 
   // 개별 삭제
@@ -290,10 +332,19 @@ function JobListPage() {
                       checked={isSelected}
                       onChange={() => handleCheckboxChange(job.id)}
                     />
-                    {/* 모바일 뷰 전용 배지 */}
-                    <span className={`status-pill-badge ${job.status.toLowerCase()} md:hidden`}>
-                      {job.status}
-                    </span>
+                    {/* 모바일 뷰 전용 상태 드롭다운 */}
+                    <div className="status-select-container md:hidden">
+                      <select
+                        className={`status-select-field ${job.status.toLowerCase()}`}
+                        value={job.status}
+                        onChange={(e) => handleStatusChange(job.id, e.target.value)}
+                      >
+                        <option value="PENDING">PENDING</option>
+                        <option value="APPROVED">APPROVED</option>
+                        <option value="REJECTED">REJECTED</option>
+                        <option value="EXPIRED">EXPIRED</option>
+                      </select>
+                    </div>
                   </div>
 
                   {/* 세부 정보 영역 */}
@@ -305,10 +356,19 @@ function JobListPage() {
                         </h3>
                         <p className="card-company-name">{job.companyName}</p>
                       </div>
-                      {/* 데스크톱 전용 배지 */}
-                      <span className={`status-pill-badge ${job.status.toLowerCase()} hidden md:inline-flex`}>
-                        {job.status}
-                      </span>
+                      {/* 데스크톱 전용 상태 드롭다운 */}
+                      <div className="status-select-container hidden md:inline-flex">
+                        <select
+                          className={`status-select-field ${job.status.toLowerCase()}`}
+                          value={job.status}
+                          onChange={(e) => handleStatusChange(job.id, e.target.value)}
+                        >
+                          <option value="PENDING">PENDING</option>
+                          <option value="APPROVED">APPROVED</option>
+                          <option value="REJECTED">REJECTED</option>
+                          <option value="EXPIRED">EXPIRED</option>
+                        </select>
+                      </div>
                     </div>
 
                     {/* 메타데이터 */}
@@ -414,6 +474,14 @@ function JobListPage() {
           <span className="material-symbols-outlined floating-add-btn-icon">add</span>
           <span className="floating-add-btn-label">취업정보 추가</span>
         </Link>
+
+        {/* 토스트 알림 컴포넌트 */}
+        {showToastVisible && (
+          <div className="toast-notification">
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>check_circle</span>
+            <span>{toastMessage}</span>
+          </div>
+        )}
 
       </div>
     </div>

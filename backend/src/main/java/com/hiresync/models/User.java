@@ -31,6 +31,12 @@ public class User {
     @Column(nullable = false, length = 20)
     private String status; // ACTIVE, INACTIVE, REVOKED
 
+    @Column(length = 50)
+    private String phone;
+
+    @Column(name = "profile_image", length = 1000)
+    private String profileImage;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

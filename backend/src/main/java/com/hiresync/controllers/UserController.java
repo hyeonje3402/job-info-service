@@ -1,6 +1,7 @@
 package com.hiresync.controllers;
 
 import com.hiresync.models.ApiResponse;
+import com.hiresync.models.User;
 import com.hiresync.models.UserResponse;
 import com.hiresync.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +21,10 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
-        List<UserResponse> users = userService.findAllUsers().stream()
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers(
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String status) {
+        List<UserResponse> users = userService.findUsers(role, status).stream()
                 .map(UserResponse::from)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponse.success(users));
@@ -32,5 +35,15 @@ public class UserController {
         return userService.findById(id)
                 .map(user -> ResponseEntity.ok(ApiResponse.success(UserResponse.from(user))))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+        try {
+            User updatedUser = userService.updateUser(id, userDetails);
+            return ResponseEntity.ok(ApiResponse.success(UserResponse.from(updatedUser)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

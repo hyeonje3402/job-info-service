@@ -717,3 +717,81 @@
     font-weight: 700;
   }
 }
+
+/* 상태 드롭다운 Select 박스 스타일 */
+.status-select-container {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
+.status-select-field {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border-subtle);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+  line-height: 16px;
+  font-family: var(--font-title);
+  text-align: center;
+}
+
+.status-select-field:focus {
+  box-shadow: 0 0 0 2px rgba(26, 90, 215, 0.2);
+  border-color: var(--primary-color);
+}
+
+.status-select-field.approved {
+  background-color: var(--success-bg);
+  color: var(--success-text);
+  border-color: var(--success-bg);
+}
+
+.status-select-field.pending {
+  background-color: var(--pending-bg);
+  color: var(--pending-text);
+  border-color: var(--pending-bg);
+}
+
+.status-select-field.rejected,
+.status-select-field.expired {
+  background-color: var(--error-bg);
+  color: var(--error-text);
+  border-color: var(--error-bg);
+}
+
+/* 토스트 알림 스타일 */
+.toast-notification {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background-color: var(--on-surface);
+  color: #FFFFFF;
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 9999;
+  animation: toastFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes toastFadeIn {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

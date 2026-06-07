@@ -20,6 +20,10 @@ public class JobPostingService {
         return jobPostingRepository.findAll(pageable);
     }
 
+    public Page<JobPosting> findByStatus(String status, Pageable pageable) {
+        return jobPostingRepository.findByStatus(status, pageable);
+    }
+
     public Optional<JobPosting> findById(Long id) {
         return jobPostingRepository.findById(id);
     }
@@ -71,6 +75,14 @@ public class JobPostingService {
                 }
             }
             
+            return jobPostingRepository.save(jobPosting);
+        });
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public Optional<JobPosting> updateStatus(Long id, String status) {
+        return jobPostingRepository.findById(id).map(jobPosting -> {
+            jobPosting.setStatus(status);
             return jobPostingRepository.save(jobPosting);
         });
     }

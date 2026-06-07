@@ -1,0 +1,27 @@
+{
+  "name": "github-hyeonje3402",
+  "version": "1.0.0",
+  "description": "HireSync는 AI(OpenAI/LLM)를 활용하여 다양한 소스(PDF, 웹 페이지)로부터 채용 공고 데이터를 자동으로 추출하고 관리하는 서비스입니다.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yc-lectures/github-hyeonje3402.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/yc-lectures/github-hyeonje3402/issues"
+  },
+  "homepage": "https://github.com/yc-lectures/github-hyeonje3402#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/node": "^25.9.2",
+    "playwright": "^1.60.0"
+  }
+}

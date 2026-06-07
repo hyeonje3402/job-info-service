@@ -62,6 +62,18 @@ AI 추출 엔진의 처리 상세 기록을 관리합니다.
 | error_message | TEXT | 실패 시 에러 메시지 | |
 | processed_at | DATETIME | 처리 일시 | NOT NULL |
 
+### 5. ApiUsageLog (API 사용 로그)
+API 호출이 발생할 때마다 요청자의 상세 정보를 데이터베이스에 로깅합니다.
+
+| 필드명 | 타입 | 설명 | 제약 조건 |
+| :--- | :--- | :--- | :--- |
+| id | BIGINT | 고유 식별자 | PK, Auto Increment |
+| ip_address | VARCHAR(45) | 요청자 IP 주소 | NOT NULL |
+| http_method | VARCHAR(10) | HTTP 메서드 | NOT NULL |
+| request_uri | VARCHAR(500) | 요청 API URI | NOT NULL |
+| username | VARCHAR(100) | 로그인 사용자 식별 정보 (이메일 등, 비로그인 시 null) | |
+| created_at | DATETIME | 요청 발생 시간 | NOT NULL |
+
 ## 상태 전이 (State Transitions)
 
 ### JobPosting

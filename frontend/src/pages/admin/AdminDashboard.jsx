@@ -1,36 +1,193 @@
-import React, { useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import api from '../../services/api';
 import './AdminDashboard.css';
 
+function formatTimeAgo(dateString) {
+  if (!dateString) return '';
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffMs = now - date;
+  
+  if (diffMs < 0) return '방금 전';
+  
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  if (diffMins < 1) return '방금 전';
+  if (diffMins < 60) return `${diffMins}분 전`;
+  
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}시간 전`;
+  
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}일 전`;
+}
+
 function AdminDashboard() {
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [userCount, setUserCount] = useState(0);
+  const [totalJobs, setTotalJobs] = useState(0);
+  const [approvedJobs, setApprovedJobs] = useState(0);
+  const [pendingJobs, setPendingJobs] = useState(0);
+  const [expiredJobs, setExpiredJobs] = useState(0);
+  const [apiStatsData, setApiStatsData] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
 
-  // 대시보드 접근 시 로그인 여부 간단 체크 (선택 사항)
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      console.warn("로그인 토큰이 없어 로그인 페이지로 리다이렉트합니다.");
-      // 강제 리다이렉션을 켜둘 수 있으나, 유저 편의를 위해 일단 보류하거나 가벼운 알림으로 대체 가능
-      // 여기서는 데모 목적을 위해 바로 튕기지 않고 확인만 처리합니다.
-    }
-  }, [navigate]);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [usersRes, jobsRes, pendingJobsRes, approvedJobsRes, expiredJobsRes, apiLogsRes] = await Promise.all([
+          api.get('/api/v1/users'),
+          api.get('/api/v1/jobs'),
+          api.get('/api/v1/jobs', { params: { status: 'PENDING', size: 1 } }),
+          api.get('/api/v1/jobs', { params: { status: 'APPROVED', size: 1 } }),
+          api.get('/api/v1/jobs', { params: { status: 'EXPIRED', size: 1 } }),
+          api.get('/api/v1/api-logs', { params: { size: 2000 } })
+        ]);
 
-  // 방문자 통계 목업 데이터
-  const visitorData = [
-    { day: '월', value: '300명', height: '30%' },
-    { day: '화', value: '500명', height: '50%' },
-    { day: '수', value: '400명', height: '40%' },
-    { day: '목', value: '800명', height: '80%', active: true }, // 목요일이 가장 높은 주 피크
-    { day: '금', value: '600명', height: '60%' },
-    { day: '토', value: '700명', height: '70%' },
-    { day: '일', value: '450명', height: '45%' },
-  ];
+        if (usersRes.data && usersRes.data.status === 'success') {
+          setUserCount((usersRes.data.data || []).length);
+        }
+
+        if (jobsRes.data && jobsRes.data.status === 'success') {
+          setTotalJobs(jobsRes.data.data?.totalElements || 0);
+        }
+
+        if (pendingJobsRes.data && pendingJobsRes.data.status === 'success') {
+          setPendingJobs(pendingJobsRes.data.data?.totalElements || 0);
+        }
+
+        if (approvedJobsRes.data && approvedJobsRes.data.status === 'success') {
+          setApprovedJobs(approvedJobsRes.data.data?.totalElements || 0);
+        }
+
+        if (expiredJobsRes.data && expiredJobsRes.data.status === 'success') {
+          setExpiredJobs(expiredJobsRes.data.data?.totalElements || 0);
+        }
+
+        if (apiLogsRes.data && apiLogsRes.data.status === 'success') {
+          const logs = apiLogsRes.data.data?.content || [];
+          
+          const last7Days = [];
+          for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const dateStr = `${yyyy}-${mm}-${dd}`;
+            
+            const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+            const dayName = dayNames[d.getDay()];
+            
+            last7Days.push({
+              dateStr,
+              dayLabel: `${mm}/${dd}(${dayName})`,
+              count: 0
+            });
+          }
+          
+          logs.forEach(log => {
+            if (!log.createdAt) return;
+            const logDate = log.createdAt.split('T')[0];
+            const dayObj = last7Days.find(d => d.dateStr === logDate);
+            if (dayObj) {
+              dayObj.count += 1;
+            }
+          });
+          
+          const maxCount = Math.max(...last7Days.map(d => d.count), 1);
+          const chartData = last7Days.map((d, idx) => ({
+            day: d.dayLabel,
+            value: d.count,
+            height: `${(d.count / maxCount) * 80 + 10}%`,
+            active: idx === 6
+          }));
+          
+          setApiStatsData(chartData);
+
+          const activities = [];
+          for (const log of logs) {
+            if (activities.length >= 5) break;
+
+            const uri = log.requestUri || '';
+            const method = log.httpMethod || '';
+            const username = log.username || '비회원';
+            const timeAgo = formatTimeAgo(log.createdAt);
+
+            let activity = null;
+
+            if (uri.startsWith('/api/v1/auth/register') && method === 'POST') {
+              activity = {
+                type: 'register',
+                icon: 'person_add',
+                text: '신규 사용자 회원가입이 완료되었습니다.',
+                time: timeAgo
+              };
+            } else if (uri === '/api/v1/jobs' && method === 'POST') {
+              activity = {
+                type: 'job-add',
+                icon: 'post_add',
+                text: `${username}님이 새 채용공고를 등록했습니다.`,
+                time: timeAgo
+              };
+            } else if (uri.startsWith('/api/v1/jobs/') && method === 'PUT') {
+              activity = {
+                type: 'job-edit',
+                icon: 'edit',
+                text: `${username}님이 채용공고를 수정/승인했습니다.`,
+                time: timeAgo
+              };
+            } else if (uri.startsWith('/api/v1/jobs/') && method === 'DELETE') {
+              activity = {
+                type: 'job-delete',
+                icon: 'delete',
+                text: `${username}님이 채용공고를 삭제했습니다.`,
+                time: timeAgo
+              };
+            } else if (uri.startsWith('/api/v1/sources/url') && method === 'POST') {
+              activity = {
+                type: 'analysis',
+                icon: 'link',
+                text: `${username}님이 URL 채용정보 파싱을 요청했습니다.`,
+                time: timeAgo
+              };
+            } else if (uri.startsWith('/api/v1/sources/pdf') && method === 'POST') {
+              activity = {
+                type: 'analysis',
+                icon: 'picture_as_pdf',
+                text: `${username}님이 PDF 채용정보 파싱을 요청했습니다.`,
+                time: timeAgo
+              };
+            } else if (uri.startsWith('/api/v1/auth/login') && method === 'POST') {
+              activity = {
+                type: 'login',
+                icon: 'login',
+                text: `${username}님이 로그인하였습니다.`,
+                time: timeAgo
+              };
+            }
+
+            if (activity) {
+              activities.push(activity);
+            }
+          }
+          setRecentActivities(activities);
+        }
+      } catch (err) {
+        console.error("대시보드 실데이터 로드 중 실패", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className="dashboard-root">
       <div className="dashboard-wrapper">
         
-        {/* 상단 앱바 탑바 (모바일 뷰에서 주로 브랜딩용으로 보임) */}
         <header className="dashboard-top-appbar">
           <div className="appbar-title-group">
             <span className="material-symbols-outlined appbar-logo" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -40,89 +197,117 @@ function AdminDashboard() {
           </div>
         </header>
 
-        {/* 대시보드 타이틀 헤더 */}
         <section className="dashboard-header-section">
           <h2 className="dashboard-main-title">대시보드 개요</h2>
           <p className="dashboard-main-subtitle">시스템의 주요 지표와 최근 활동을 확인하세요.</p>
         </section>
 
-        {/* Bento Grid 구조 */}
         <div className="bento-grid-container">
           
           {/* Stat Card 1: Users */}
           <div className="bento-stat-card">
-            {/* 우상단 배경 아이콘 */}
             <span className="material-symbols-outlined bento-stat-bg-icon" style={{ fontSize: '64px' }}>
               group
             </span>
             <div>
               <h3 className="stat-label">등록된 사용자 수</h3>
-              <div className="stat-value">1,248</div>
+              <div className="stat-value">{loading ? '...' : `${userCount}명`}</div>
             </div>
             <div className="stat-trend-footer">
               <span className="trend-badge">
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
                   trending_up
                 </span>
-                <span>+12%</span>
+                <span>실시간</span>
               </span>
-              <span className="trend-compare-text">지난 달 대비</span>
+              <span className="trend-compare-text">인사 데이터베이스 연동</span>
             </div>
           </div>
 
           {/* Stat Card 2: Jobs */}
-          <div className="bento-stat-card">
-            {/* 우상단 배경 아이콘 */}
+          <div className="bento-stat-card jobs-status-card">
             <span className="material-symbols-outlined bento-stat-bg-icon" style={{ fontSize: '64px' }}>
               work
             </span>
-            <div>
-              <h3 className="stat-label">등록된 취업정보의 수</h3>
-              <div className="stat-value">342</div>
+            <div className="jobs-status-header">
+              <h3 className="stat-label">채용공고 등록 현황</h3>
+              <div className="stat-value">{loading ? '...' : `${totalJobs}개`}</div>
             </div>
-            <div className="stat-trend-footer">
-              <span className="trend-badge">
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                  trending_up
-                </span>
-                <span>+5%</span>
-              </span>
-              <span className="trend-compare-text">이번 주 신규</span>
+            <div className="jobs-status-list">
+              <div className="status-item approved">
+                <span className="status-pill-badge approved-badge">승인됨</span>
+                <span className="status-count">{loading ? '...' : `${approvedJobs}개`}</span>
+              </div>
+              <div className="status-item pending">
+                <span className="status-pill-badge pending-badge">대기중</span>
+                <span className="status-count">{loading ? '...' : `${pendingJobs}개`}</span>
+              </div>
+              <div className="status-item expired">
+                <span className="status-pill-badge expired-badge">만료됨</span>
+                <span className="status-count">{loading ? '...' : `${expiredJobs}개`}</span>
+              </div>
             </div>
           </div>
 
-          {/* Chart Card: Visitor Stats */}
+          {/* Card 3: Recent Activities */}
+          <div className="bento-activity-card">
+            <div className="activity-header">
+              <h3 className="activity-title">최근 활동 목록</h3>
+              <span className="material-symbols-outlined" style={{ color: 'var(--secondary-color)', fontSize: '20px' }}>
+                notifications_active
+              </span>
+            </div>
+            <div className="activity-list">
+              {loading ? (
+                <div style={{ color: 'var(--secondary-color)', fontSize: '13px' }}>로딩 중...</div>
+              ) : recentActivities.length === 0 ? (
+                <div style={{ color: 'var(--secondary-color)', fontSize: '13px', padding: '16px 0' }}>최근 활동이 없습니다.</div>
+              ) : (
+                recentActivities.map((act, idx) => (
+                  <div key={idx} className="activity-item">
+                    <div className={`activity-icon-container ${act.type}`}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                        {act.icon}
+                      </span>
+                    </div>
+                    <div className="activity-content-wrapper">
+                      <span className="activity-text">{act.text}</span>
+                      <span className="activity-time">{act.time}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Chart Card */}
           <div className="bento-chart-card">
             <div className="chart-header">
-              <h3 className="chart-title">방문자 통계</h3>
+              <h3 className="chart-title">API 호출 통계</h3>
               <button className="chart-filter-btn" onClick={() => alert('기간 필터 기능 준비 중')}>
-                <span>이번 주</span>
+                <span>지난 7일</span>
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
                   expand_more
                 </span>
               </button>
             </div>
 
-            {/* 차트 시각화 영역 */}
             <div className="chart-visual-wrapper">
               
-              {/* Y축 라벨 */}
               <div className="chart-y-axis-labels">
-                <span>1k</span>
-                <span>500</span>
+                <span>{loading ? '...' : Math.max(...apiStatsData.map(d => d.value), 10)}</span>
+                <span>{loading ? '...' : Math.floor(Math.max(...apiStatsData.map(d => d.value), 10) / 2)}</span>
                 <span>0</span>
               </div>
 
-              {/* 가로 점선 격자 */}
               <div className="chart-grid-lines">
                 <div className="grid-line"></div>
                 <div className="grid-line"></div>
                 <div className="grid-line"></div>
               </div>
 
-              {/* 차트 바 목록 */}
               <div className="chart-bars-container">
-                {visitorData.map((data, idx) => (
+                {apiStatsData.map((data, idx) => (
                   <div 
                     key={idx}
                     className={`chart-bar-item ${data.active ? 'active' : ''}`}
@@ -132,9 +317,8 @@ function AdminDashboard() {
                 ))}
               </div>
 
-              {/* X축 라벨 */}
               <div className="chart-x-axis-labels">
-                {visitorData.map((data, idx) => (
+                {apiStatsData.map((data, idx) => (
                   <span key={idx}>{data.day}</span>
                 ))}
               </div>
@@ -160,14 +344,7 @@ function AdminDashboard() {
           </Link>
 
           {/* Quick Link 2: 사용자목록 */}
-          <a 
-            href="#" 
-            className="bento-quick-link"
-            onClick={(e) => {
-              e.preventDefault();
-              alert('사용자 목록 관리 기능은 후속 스프린트에서 구현 예정입니다.');
-            }}
-          >
+          <Link to="/users-management" className="bento-quick-link">
             <div className="quick-link-left">
               <div className="quick-link-icon-container">
                 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -182,7 +359,7 @@ function AdminDashboard() {
             <span className="material-symbols-outlined quick-link-arrow">
               arrow_forward
             </span>
-          </a>
+          </Link>
 
         </div>
       </div>
@@ -191,3 +368,4 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard;
+

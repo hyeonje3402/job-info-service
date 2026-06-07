@@ -52,7 +52,9 @@ public class JobPostingController {
     }
 
     @GetMapping("/jobs")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getAllJobs(Pageable pageable) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getAllJobs(
+            @RequestParam(required = false) String status,
+            Pageable pageable) {
         if (pageable.getPageNumber() < 0) {
             throw new IllegalArgumentException("페이지 번호는 0 이상이어야 합니다.");
         }
@@ -60,7 +62,13 @@ public class JobPostingController {
             throw new IllegalArgumentException("한 번에 최대 50개까지만 조회 가능합니다.");
         }
         
-        Page<JobPosting> jobs = jobPostingService.findAll(pageable);
+        Page<JobPosting> jobs;
+        if (status != null && !status.isBlank()) {
+            jobs = jobPostingService.findByStatus(status, pageable);
+        } else {
+            jobs = jobPostingService.findAll(pageable);
+        }
+        
         List<JobResponse> dtoList = jobs.getContent().stream()
                 .map(JobResponse::fromEntity)
                 .collect(Collectors.toList());
@@ -241,5 +249,19 @@ public class JobPostingController {
         logEntry.setErrorMessage(error);
         logEntry.setProcessedAt(LocalDateTime.now());
         extractionLogRepository.save(logEntry);
+    }
+
+    @PatchMapping("/jobs/{id}/status")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<ApiResponse<JobResponse>> updateJobStatus(
+            @PathVariable("id") Long id,
+            @RequestBody Map<String, String> request) {
+        String status = request.get("status");
+        if (status == null || status.isBlank()) {
+            throw new IllegalArgumentException("상태 값은 필수입니다.");
+        }
+        return jobPostingService.updateStatus(id, status)
+                .map(updated -> ResponseEntity.ok(ApiResponse.success(JobResponse.fromEntity(updated))))
+                .orElse(ResponseEntity.notFound().build());
     }
 }

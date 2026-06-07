@@ -11,6 +11,12 @@
   --success-color: #10B981;
   --success-bg: #D1FAE5;
   --success-text: #065F46;
+  --pending-color: #F59E0B;
+  --pending-bg: #FEF3C7;
+  --pending-text: #92400E;
+  --expired-color: #EF4444;
+  --expired-bg: #FEE2E2;
+  --expired-text: #991B1B;
   
   --font-title: 'Hanken Grotesk', sans-serif;
   --font-body: 'Noto Sans', sans-serif;
@@ -198,6 +204,187 @@
 
 .trend-compare-text {
   color: var(--on-surface-variant);
+}
+
+/* 채용공고 현황 카드 세부 스타일 */
+.jobs-status-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start !important;
+  gap: 16px;
+}
+
+.jobs-status-header {
+  display: flex;
+  flex-direction: column;
+}
+
+.jobs-status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: var(--neutral-bg);
+  border: 1px solid var(--border-subtle);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.status-item:hover {
+  background-color: var(--surface-lowest);
+  border-color: var(--primary-color);
+  transform: translateX(4px);
+}
+
+.status-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.approved-badge {
+  background-color: var(--success-bg);
+  color: var(--success-text);
+}
+
+.pending-badge {
+  background-color: var(--pending-bg);
+  color: var(--pending-text);
+}
+
+.expired-badge {
+  background-color: var(--expired-bg);
+  color: var(--expired-text);
+}
+
+.status-count {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--on-surface);
+  font-family: var(--font-title);
+}
+
+/* 최근 활동 목록 카드 스타일 */
+.bento-activity-card {
+  background-color: var(--surface-lowest);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bento-activity-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: var(--primary-color);
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 8px;
+}
+
+.activity-title {
+  font-family: var(--font-title);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.activity-icon-container {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--neutral-bg);
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+.activity-icon-container.register {
+  background-color: #E0F2FE;
+  color: #0284C7;
+}
+
+.activity-icon-container.job-add {
+  background-color: var(--success-bg);
+  color: var(--success-text);
+}
+
+.activity-icon-container.job-edit {
+  background-color: var(--pending-bg);
+  color: var(--pending-text);
+}
+
+.activity-icon-container.job-delete {
+  background-color: var(--expired-bg);
+  color: var(--expired-text);
+}
+
+.activity-icon-container.analysis {
+  background-color: #F3E8FF;
+  color: #9333EA;
+}
+
+.activity-icon-container.login {
+  background-color: #F1F5F9;
+  color: #475569;
+}
+
+.activity-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+}
+
+.activity-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--on-surface);
+  line-height: 18px;
+}
+
+.activity-time {
+  font-size: 11px;
+  color: var(--secondary-color);
 }
 
 /* 2. 방문자 차트 카드 (Bento Grid 3컬럼 확장) */

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import api from '../../services/api';
 import './UserListPage.css';
 
 // Stitch 스크린 설계안에 부합하는 사용자 폴백 목업 데이터 정의
@@ -8,42 +9,52 @@ const FALLBACK_USERS = [
     id: 1,
     name: '김지훈',
     email: 'jihoon.kim@example.com',
-    role: '지원자',
+    role: 'GENERAL',
     status: 'ACTIVE',
     lastActive: '2023-10-25 14:30',
+    phone: '010-1234-5678',
+    profileImage: '',
     isNew: false
   },
   {
     id: 2,
     name: '이서연',
     email: 'seoyeon.lee@corp.kr',
-    role: '기업 인사담당자',
+    role: 'GENERAL',
     status: 'ACTIVE',
     lastActive: '2023-10-26 09:15',
+    phone: '',
+    profileImage: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
     isNew: true
   },
   {
     id: 3,
-    name: '박민수',
+    name: '', // 이름 누락
     email: 'minsoo.park@test.com',
-    role: '지원자',
+    role: 'GENERAL',
     status: 'REVOKED',
     lastActive: '2023-09-12 11:00',
+    phone: '010-9876-5432',
+    profileImage: '',
     isNew: false
   },
   {
     id: 4,
     name: '최유진',
-    email: 'yujin.choi@dev.io',
-    role: '리크루터',
+    email: '', // 이메일 누락
+    role: 'ADMIN',
     status: 'ACTIVE',
     lastActive: '2023-10-26 10:45',
+    phone: '', // 연락처 누락
+    profileImage: '',
     isNew: false
   }
 ];
 
 function UserListPage() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
+  const [activeDropdownUserId, setActiveDropdownUserId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,35 +62,69 @@ function UserListPage() {
   const [sortType, setSortType] = useState('최신 가입순');
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
 
-  // 1. 사용자 데이터 조회 (GET API 연동)
+  // 1. 사용자 데이터 조회 (GET API 연동 - 필터 적용)
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
-      const backendUrl = process.env.REACT_APP_BACKEND || '';
-
       try {
-        // AGENTS.md 규칙: 세션 JSESSIONID 연동을 보장하기 위해 withCredentials 탑재 필수
-        const response = await axios.get(`${backendUrl}/api/v1/users`, {
-          withCredentials: true
-        });
+        const params = {};
+        if (selectedRole) params.role = selectedRole;
+        if (selectedStatus) params.status = selectedStatus;
+
+        const response = await api.get('/api/v1/users', { params });
 
         if (response.data && response.data.status === 'success') {
-          // 백엔드 반환 규격 매핑
-          setUsers(response.data.data || []);
+          const mappedUsers = (response.data.data || []).map((u, index) => ({
+            ...u,
+            id: u.id || u.email || index
+          }));
+          setUsers(mappedUsers);
         } else {
-          setUsers(FALLBACK_USERS);
+          let filteredFallback = FALLBACK_USERS;
+          if (selectedRole) {
+            filteredFallback = filteredFallback.filter(u => {
+              const r = u.role ? u.role.toUpperCase() : '';
+              if (selectedRole === 'ADMIN') return r.includes('ADMIN') || r.includes('관리자');
+              if (selectedRole === 'GENERAL') return r.includes('GENERAL') || r.includes('지원자') || r.includes('인사담당자') || r.includes('리크루터');
+              return r.includes(selectedRole.toUpperCase());
+            });
+          }
+          if (selectedStatus) {
+            filteredFallback = filteredFallback.filter(u => u.status === selectedStatus);
+          }
+          setUsers(filteredFallback.map((u, index) => ({
+            ...u,
+            id: u.id || u.email || index
+          })));
         }
       } catch (err) {
-        console.warn("백엔드 API 사용자 조회 실패 - 목업 폴백 데이터를 대신 로드합니다.", err);
-        setUsers(FALLBACK_USERS);
+        console.warn("백엔드 API 사용자 조회 실패 - 목업 폴백 데이터를 필터하여 대신 로드합니다.", err);
+        let filteredFallback = FALLBACK_USERS;
+        if (selectedRole) {
+          filteredFallback = filteredFallback.filter(u => {
+            const r = u.role ? u.role.toUpperCase() : '';
+            if (selectedRole === 'ADMIN') return r.includes('ADMIN') || r.includes('관리자');
+            if (selectedRole === 'GENERAL') return r.includes('GENERAL') || r.includes('지원자') || r.includes('인사담당자') || r.includes('리크루터');
+            return r.includes(selectedRole.toUpperCase());
+          });
+        }
+        if (selectedStatus) {
+          filteredFallback = filteredFallback.filter(u => u.status === selectedStatus);
+        }
+        setUsers(filteredFallback.map((u, index) => ({
+          ...u,
+          id: u.id || u.email || index
+        })));
       } finally {
         setLoading(false);
       }
     };
 
     fetchUsers();
-  }, []);
+  }, [selectedRole, selectedStatus]);
 
   // 다중 체크박스 선택 처리
   const handleSelectAll = (e) => {
@@ -115,15 +160,10 @@ function UserListPage() {
 
     if (window.confirm(`${selectedUserIds.length}명의 사용자를 '${statusText}' 상태로 변경하시겠습니까?`)) {
       setLoading(true);
-      const backendUrl = process.env.REACT_APP_BACKEND || '';
-
       try {
-        // AGENTS.md 규칙: 세션 JSESSIONID 연동을 보장하기 위해 withCredentials 탑재 필수
-        const response = await axios.put(`${backendUrl}/api/v1/users/bulk-status`, {
+        const response = await api.put('/api/v1/users/bulk-status', {
           userIds: selectedUserIds,
           status: nextStatus
-        }, {
-          withCredentials: true
         });
 
         if (response.data && response.data.status === 'success') {
@@ -169,7 +209,7 @@ function UserListPage() {
 
   // 신규 사용자 정보 추가
   const handleAddUser = () => {
-    alert('사용자 신규 정보 등록 기능은 대시보드 통합 패널 후속 스프린트에서 정식 연동될 예정입니다.');
+    navigate('/users-management/add');
   };
 
   // 실시간 검색어 기반 필터링
@@ -268,8 +308,39 @@ function UserListPage() {
               </button>
             </div>
 
-            {/* 정렬 필터 */}
+            {/* 필터 및 정렬 제어 */}
             <div className="filter-controls">
+              {/* 권한 필터 */}
+              <select 
+                className="toolbar-select-field"
+                value={selectedRole}
+                onChange={(e) => {
+                  setSelectedRole(e.target.value);
+                  setCurrentPage(1);
+                }}
+                disabled={loading}
+              >
+                <option value="">모든 권한</option>
+                <option value="ADMIN">ADMIN</option>
+                <option value="GENERAL">GENERAL</option>
+              </select>
+
+              {/* 활성화 상태 필터 */}
+              <select 
+                className="toolbar-select-field"
+                value={selectedStatus}
+                onChange={(e) => {
+                  setSelectedStatus(e.target.value);
+                  setCurrentPage(1);
+                }}
+                disabled={loading}
+              >
+                <option value="">모든 상태</option>
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="INACTIVE">INACTIVE</option>
+                <option value="REVOKED">REVOKED</option>
+              </select>
+
               <select 
                 className="toolbar-select-field"
                 value={sortType}
@@ -302,6 +373,14 @@ function UserListPage() {
         <section className="userlist-table-card">
           <div className="table-responsive-container">
             <table className="user-data-table">
+              <colgroup>
+                <col className="col-checkbox" />
+                <col className="col-info" />
+                <col className="col-role" />
+                <col className="col-status" />
+                <col className="col-date" />
+                <col className="col-action" />
+              </colgroup>
               <thead>
                 <tr>
                   <th className="th-checkbox">
@@ -354,20 +433,74 @@ function UserListPage() {
                         </td>
                         <td>
                           <div className="user-info-cell">
-                            <div className={`avatar-circle ${user.id % 2 === 0 ? 'avatar-blue' : 'avatar-grey'}`}>
-                              {getInitial(user.name)}
+                            <div 
+                              className={`avatar-circle ${user.id % 2 === 0 ? 'avatar-blue' : 'avatar-grey'}`}
+                              style={{ overflow: 'hidden', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                              {user.profileImage ? (
+                                <img src={user.profileImage} alt={user.name || '유저 아바타'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                getInitial(user.name)
+                              )}
                             </div>
                             <div>
                               <p className="user-name-text">
-                                {user.name}
+                                {user.name ? (
+                                  user.name
+                                ) : (
+                                  <span 
+                                    className="missing-info-text"
+                                    title="이름 입력하기"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(`/users-management/${user.id}/edit`);
+                                    }}
+                                  >
+                                    - (이름 누락)
+                                  </span>
+                                )}
                                 {user.isNew && <span className="new-badge">NEW</span>}
                               </p>
-                              <p className="user-email-text">{user.email}</p>
+                              <p className="user-email-text">
+                                {user.email ? (
+                                  user.email
+                                ) : (
+                                  <span 
+                                    className="missing-info-text"
+                                    title="이메일 입력하기"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(`/users-management/${user.id}/edit`);
+                                    }}
+                                  >
+                                    - (이메일 누락)
+                                  </span>
+                                )}
+                              </p>
+                              <p className="user-phone-text" style={{ fontSize: '12px', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span style={{ color: 'var(--text-muted)' }}>연락처:</span>
+                                {user.phone ? (
+                                  <span style={{ color: 'var(--text-secondary)' }}>{user.phone}</span>
+                                ) : (
+                                  <span 
+                                    className="missing-info-text"
+                                    title="연락처 입력하기"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(`/users-management/${user.id}/edit`);
+                                    }}
+                                  >
+                                    미입력 (정보 입력하기)
+                                  </span>
+                                )}
+                              </p>
                             </div>
                           </div>
                         </td>
-                        <td style={{ color: 'var(--on-surface-variant)' }}>
-                          {user.role}
+                        <td>
+                          <span className={`role-badge ${(user.role || '').toLowerCase()}`}>
+                            {user.role === 'ADMIN' ? '관리자' : '일반'}
+                          </span>
                         </td>
                         <td>
                           <span className={`status-pill ${isSuspended ? 'suspended' : 'active'}`}>
@@ -378,25 +511,45 @@ function UserListPage() {
                         <td style={{ color: 'var(--on-surface-variant)' }}>
                           {user.lastActive || '기록 없음'}
                         </td>
-                        <td className="action-btn-cell">
+                        <td className="action-btn-cell" style={{ position: 'relative' }}>
                           <button 
                             type="button"
-                            className="table-action-btn edit-btn"
-                            title="수정"
-                            onClick={() => handleEditUser(user.name)}
+                            className="table-action-btn more-btn"
+                            title="더보기"
+                            onClick={() => setActiveDropdownUserId(activeDropdownUserId === user.id ? null : user.id)}
                             disabled={loading}
                           >
-                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span>
+                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>more_vert</span>
                           </button>
-                          <button 
-                            type="button"
-                            className="table-action-btn delete-btn"
-                            title="삭제"
-                            onClick={() => handleDeleteUser(user.id, user.name)}
-                            disabled={loading}
-                          >
-                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
-                          </button>
+                          
+                          {activeDropdownUserId === user.id && (
+                            <div className="dropdown-menu glass-panel" style={{ position: 'absolute', right: '16px', top: '100%', zIndex: 10, display: 'flex', flexDirection: 'column', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '6px', minWidth: '150px', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' }}>
+                              <button 
+                                type="button" 
+                                className="dropdown-item" 
+                                onClick={() => {
+                                  setActiveDropdownUserId(null);
+                                  navigate(`/users-management/${user.id}/edit`);
+                                }}
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px', background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', textAlign: 'left', borderRadius: '4px', fontSize: '13px' }}
+                              >
+                                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span>
+                                <span>사용자 정보 수정</span>
+                              </button>
+                              <button 
+                                type="button" 
+                                className="dropdown-item delete" 
+                                onClick={() => {
+                                  setActiveDropdownUserId(null);
+                                  handleDeleteUser(user.id, user.name);
+                                }}
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px', background: 'transparent', border: 'none', color: '#EF4444', cursor: 'pointer', textAlign: 'left', borderRadius: '4px', fontSize: '13px' }}
+                              >
+                                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
+                                <span>사용자 삭제</span>
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     );

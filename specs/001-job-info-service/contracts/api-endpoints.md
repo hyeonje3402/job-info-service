@@ -52,6 +52,54 @@
 }
 ```
 
+### 3. API 사용 로그 조회
+- **Method**: `GET`
+- **Path**: `/api/v1/api-logs`
+- **Description**: 시스템 내 API 호출 이력(로그)을 페이징 처리하여 조회합니다.
+- **Security**: 관리자 권한 필수 (`ROLE_ADMIN`)
+- **Query Parameters**:
+  - `page` (Integer): 조회할 페이지 번호 (기본값: 0)
+  - `size` (Integer): 한 페이지당 노출할 로그 개수 (기본값: 10)
+  - `sort` (String): 정렬 기준 필드 및 방향 (기본값: "createdAt,desc")
+- **Response Body**:
+```json
+{
+  "status": "success",
+  "data": {
+    "content": [
+      {
+        "id": 1,
+        "ipAddress": "127.0.0.1",
+        "httpMethod": "GET",
+        "requestUri": "/api/v1/users",
+        "username": "admin@example.com",
+        "createdAt": "2026-06-04T15:55:31"
+      }
+    ],
+    "pageable": {
+      "pageNumber": 0,
+      "pageSize": 10,
+      "sort": {
+        "empty": false,
+        "sorted": true,
+        "unsorted": false
+      },
+      "offset": 0,
+      "paged": true,
+      "unpaged": false
+    },
+    "totalPages": 1,
+    "totalElements": 1,
+    "size": 10,
+    "number": 0,
+    "numberOfElements": 1,
+    "first": true,
+    "last": true,
+    "empty": false
+  }
+}
+```
+
 ## 공통 사항
 - 응답의 `status` 필드는 성공 시 `"success"`, 실패 시 `"error"`를 반환합니다.
 - 개인정보 보호를 위해 비밀번호(`password`) 필드는 응답에서 제외됩니다.
