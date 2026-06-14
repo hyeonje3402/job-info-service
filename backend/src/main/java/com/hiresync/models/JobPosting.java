@@ -43,7 +43,7 @@ public class JobPosting {
     
     @NotBlank(message = "상태값은 필수입니다.")
     @Column(name = "status", length = 20, nullable = false)
-    private String status; // PENDING, APPROVED, EXPIRED
+    private String status; // DRAFT, PUBLISHED, EXPIRED
     
     @Version
     private Long version;

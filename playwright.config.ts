@@ -13,6 +13,8 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
+  /* test-1.ts 및 test-2.ts 파일과 기본 spec.ts 파일들을 테스트 대상으로 설정 */
+  testMatch: ['**/*.spec.ts', '**/test-1.ts', '**/test-2.ts', '**/test-3.ts', '**/test-4.ts', '**/test-5.ts', '**/test-6.ts'],
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

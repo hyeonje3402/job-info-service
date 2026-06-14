@@ -35,16 +35,7 @@ public class DataInitializer {
             }
 
             if (jobPostingRepository.count() == 0) {
-                // Insert 6 dummy records to make the next one ID 7
-                for (int i = 1; i <= 6; i++) {
-                    JobPosting dummy = new JobPosting();
-                    dummy.setCompanyName("Dummy " + i);
-                    dummy.setPosition("Position " + i);
-                    dummy.setStatus("PENDING");
-                    jobPostingRepository.save(dummy);
-                }
-                
-                // The 7th record for test-3.json
+                // The record for jobs.spec.ts integration test
                 JobPosting target = new JobPosting();
                 target.setCompanyName("SK키파운드리");
                 target.setPosition("Frontend Engineer");

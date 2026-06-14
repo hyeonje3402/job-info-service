@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import './JobAddPage.css';
 
-function JobAddPage() {
+function JobAddPage({ isModal = false, onClose, onSuccess }) {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -59,7 +59,11 @@ function JobAddPage() {
 
   // 취소 버튼
   const handleCancel = () => {
-    navigate('/'); // 메인JobList로 이동
+    if (isModal && onClose) {
+      onClose();
+    } else {
+      navigate('/'); // 메인JobList로 이동
+    }
   };
 
   // 폼 확인 전송 제출
@@ -67,8 +71,6 @@ function JobAddPage() {
     e.preventDefault();
     setError('');
     setLoading(true);
-
-    const backendUrl = process.env.REACT_APP_BACKEND || '';
 
     try {
       if (activeTab === 'file') {
@@ -82,19 +84,24 @@ function JobAddPage() {
         const formData = new FormData();
         formData.append('file', file);
 
-        // AGENTS.md 규칙: 세션 JSESSIONID 쿠키 연동을 보장하기 위해 withCredentials 옵션을 필수로 추가
-        const response = await axios.post(`${backendUrl}/api/v1/sources/pdf`, formData, {
+        // 명시적으로 withCredentials를 추가해 쿠키 동봉
+        const response = await api.post('/api/v1/sources/pdf', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           },
-          withCredentials: true // 세션 쿠키 포함
+          withCredentials: true
         });
 
         if (response.data && response.data.status === 'success') {
           alert('PDF 채용정보 공고가 성공적으로 등록 및 파싱되었습니다. (APPROVED 승인 대기상태)');
-          navigate('/'); // 메인 리스트로 복귀
+          if (isModal && onSuccess) {
+            onSuccess();
+          } else {
+            navigate('/'); // 메인 리스트로 복귀
+          }
         } else {
-          setError('파일 업로드 및 채용정보 추가 처리에 실패했습니다.');
+          const errMsg = response.data?.message || '파일 업로드 및 채용정보 추가 처리에 실패했습니다.';
+          setError(errMsg);
         }
 
       } else {
@@ -105,22 +112,35 @@ function JobAddPage() {
         }
 
         // 2. URL 파싱 요청용 JSON 데이터 전송
-        // AGENTS.md 규칙: 세션 JSESSIONID 쿠키 연동을 보장하기 위해 withCredentials 옵션을 필수로 추가
-        const response = await axios.post(`${backendUrl}/api/v1/sources/url`, {
+        // 명시적으로 withCredentials를 추가해 쿠키 동봉
+        const response = await api.post('/api/v1/sources/url', {
           url: url.trim()
         }, {
-          withCredentials: true // 세션 쿠키 포함
+          withCredentials: true
         });
 
         if (response.data && response.data.status === 'success') {
           alert('지정된 URL 채용정보 공고가 성공적으로 등록 및 파싱되었습니다. (APPROVED 승인 대기상태)');
-          navigate('/'); // 메인 리스트로 복귀
+          if (isModal && onSuccess) {
+            onSuccess();
+          } else {
+            navigate('/'); // 메인 리스트로 복귀
+          }
         } else {
-          setError('URL 등록 및 채용정보 추가 처리에 실패했습니다.');
+          const errMsg = response.data?.message || 'URL 등록 및 채용정보 추가 처리에 실패했습니다.';
+          setError(errMsg);
         }
       }
     } catch (err) {
-      console.error('채용정보 추가 요청 에러:', err);
+      console.error('채용정보 추가 요청 에러 상세:', {
+        message: err.message,
+        name: err.name,
+        code: err.code,
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        responseData: err.response?.data,
+        config: err.config
+      });
       // 세션 세부 정보 누락(401 권한 미달 등) 및 백엔드 피드백 처리
       const errorMessage = err.response?.data?.message || '인증 정보 세션(JSESSIONID) 만료되었거나, 처리 중 서버 오류가 발생하였습니다.';
       setError(errorMessage);
@@ -130,9 +150,9 @@ function JobAddPage() {
   };
 
   return (
-    <div className="addjob-page-root">
+    <div className={isModal ? "addjob-modal-body" : "addjob-page-root"}>
       {/* Main 폼 카드 */}
-      <main className="addjob-card">
+      <main className={isModal ? "addjob-modal-card" : "addjob-card"}>
         {/* Header */}
         <header className="addjob-header">
           <h1 className="addjob-title">데이터 소스 추가</h1>

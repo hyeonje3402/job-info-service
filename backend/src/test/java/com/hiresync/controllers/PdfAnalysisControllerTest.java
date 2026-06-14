@@ -64,6 +64,29 @@ class PdfAnalysisControllerTest {
     }
 
     @Test
+    void makeValidPdfForTest() {
+        try (org.apache.pdfbox.pdmodel.PDDocument document = new org.apache.pdfbox.pdmodel.PDDocument()) {
+            org.apache.pdfbox.pdmodel.PDPage page = new org.apache.pdfbox.pdmodel.PDPage();
+            document.addPage(page);
+            try (org.apache.pdfbox.pdmodel.PDPageContentStream contentStream = new org.apache.pdfbox.pdmodel.PDPageContentStream(document, page)) {
+                contentStream.beginText();
+                contentStream.setFont(new org.apache.pdfbox.pdmodel.font.PDType1Font(org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName.HELVETICA_BOLD), 12);
+                contentStream.newLineAtOffset(50, 700);
+                contentStream.showText("Company Name: Test Corp");
+                contentStream.newLineAtOffset(0, -20);
+                contentStream.showText("Position: Frontend Developer");
+                contentStream.newLineAtOffset(0, -20);
+                contentStream.showText("Location: Seoul");
+                contentStream.endText();
+            }
+            document.save(new java.io.File("/home/hjj/projects/github-hyeonje3402/tests/valid_test.pdf"));
+            System.out.println("Valid PDF created successfully at /home/hjj/projects/github-hyeonje3402/tests/valid_test.pdf");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
     @DisplayName("analyzePdf: jobPostings 키가 포함된 JSON 응답 처리")
     void shouldAnalyzePdfWithJobPostingsKey() throws Exception {
         String jsonResult = "{\"jobPostings\": [{\"companyName\": \"Test Corp\", \"position\": \"Java Developer\"}]}";

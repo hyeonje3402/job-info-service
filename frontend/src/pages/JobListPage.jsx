@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import JobAddPage from './JobAddPage';
 import './JobListPage.css';
 
 // Stitch 스펙 명세에 따른 실제 폴백(Fallback) 목업 데이터 정의
@@ -68,6 +69,7 @@ function JobListPage() {
   const [totalElements, setTotalElements] = useState(0);
   const [toastMessage, setToastMessage] = useState('');
   const [showToastVisible, setShowToastVisible] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -83,44 +85,49 @@ function JobListPage() {
     }
   }, [showToastVisible]);
 
-  // 백엔드 API 연동
-  useEffect(() => {
-    const fetchJobs = async () => {
-      setLoading(true);
-      try {
-        const backendUrl = process.env.REACT_APP_BACKEND || '';
-        // API Contracts 명세: GET /api/v1/jobs 호출
-        const response = await axios.get(`${backendUrl}/api/v1/jobs`, {
-          params: {
-            page: currentPage - 1, // Spring Data Page는 0-index
-            size: pageSize
-          }
-        });
-
-        if (response.data && response.data.status === 'success') {
-          // 백엔드에서 반환한 페이징 응답 데이터 및 페이징 속성 동적 설정
-          const pageData = response.data.data;
-          setJobs(pageData.content || []);
-          setTotalPages(pageData.totalPages || 1);
-          setTotalElements(pageData.totalElements || 0);
-        } else {
-          // 응답 실패 시 목업 폴백 데이터 장착
-          setJobs(FALLBACK_JOBS);
-          setTotalPages(1);
-          setTotalElements(FALLBACK_JOBS.length);
+  // 백엔드 API 연동 함수 추출
+  const fetchJobs = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND || '';
+      // API Contracts 명세: GET /api/v1/jobs 호출
+      const response = await axios.get(`${backendUrl}/api/v1/jobs`, {
+        params: {
+          page: currentPage - 1, // Spring Data Page는 0-index
+          size: pageSize
         }
-      } catch (err) {
-        console.warn("백엔드 API 호출 실패 - Stitch 디자인 데모용 폴백 데이터를 대신 로드합니다.", err);
+      });
+
+      if (response.data && response.data.status === 'success') {
+        // 백엔드에서 반환한 페이징 응답 데이터 및 페이징 속성 동적 설정
+        const pageData = response.data.data;
+        setJobs(pageData.content || []);
+        setTotalPages(pageData.totalPages || 1);
+        setTotalElements(pageData.totalElements || 0);
+      } else {
+        // 응답 실패 시 목업 폴백 데이터 장착
         setJobs(FALLBACK_JOBS);
         setTotalPages(1);
         setTotalElements(FALLBACK_JOBS.length);
-      } finally {
-        setLoading(false);
       }
-    };
-
-    fetchJobs();
+    } catch (err) {
+      console.warn("백엔드 API 호출 실패 - Stitch 디자인 데모용 폴백 데이터를 대신 로드합니다.", err);
+      setJobs(FALLBACK_JOBS);
+      setTotalPages(1);
+      setTotalElements(FALLBACK_JOBS.length);
+    } finally {
+      setLoading(false);
+    }
   }, [currentPage, pageSize]);
+
+  useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
+
+  const handleAddSuccess = () => {
+    setIsAddModalOpen(false);
+    fetchJobs(); // 최신 데이터로 새로고침
+  };
 
   // 다중 체크박스 선택/해제 로직
   const handleCheckboxChange = (jobId) => {
@@ -193,7 +200,7 @@ function JobListPage() {
 
   // 실시간 검색 및 정렬 필터링 처리
   const filteredJobs = jobs.filter(job => {
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.trim().toLowerCase();
     return (
       job.position.toLowerCase().includes(query) ||
       job.companyName.toLowerCase().includes(query) ||
@@ -228,11 +235,6 @@ function JobListPage() {
             <button className="appbar-btn-icon" onClick={() => alert('신규 알림이 없습니다.')}>
               <span className="material-symbols-outlined">notifications</span>
             </button>
-            <img 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIhJYl55iKlUmCmBrFcKbg-EqLpL2NPMRh5daNthu1os_zloaZgnUxUIW6VwPjA4bbcm8MU2_EIZUt8T3NcZuEMNYfuzVfSJDDP_FJpmpDiwkpGE1eAnV28Fd2EX3OMSBDC2xlg9hKjjjEFaKpDhsgcxvQV2qKlQSZXKrN-cX82RKUFs7p_g4-PfKnXnlE1nOnViu_iizKsW-beuILg9bxqvIRxYSBMuKJLs0JT429AlDNddkr41LJV4aiFG4w2HE5cNr9M-R2mwsU"
-              alt="Admin Profile"
-              className="appbar-avatar"
-            />
           </div>
         </header>
 
@@ -259,8 +261,8 @@ function JobListPage() {
         {/* 2. 헤더 타이틀 및 필터 영역 */}
         <section className="joblist-header-section">
           <div>
-            <h2 class="joblist-title-title">채용 공고 관리</h2>
-            <p class="joblist-title-subtitle">총 {sortedJobs.length}개의 채용 공고가 등록되어 있습니다.</p>
+            <h2 className="joblist-title-title">채용 공고 관리</h2>
+            <p className="joblist-title-subtitle">총 {sortedJobs.length}개의 채용 공고가 등록되어 있습니다.</p>
           </div>
 
           {/* 실시간 필터 및 정렬 */}
@@ -427,59 +429,80 @@ function JobListPage() {
           </div>
         )}
 
-        {/* 4. 페이징 영역 */}
-        {!loading && sortedJobs.length > 0 && (
-          <div className="joblist-pagination-row">
-            <div className="pagination-counter-text">
-              Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalElements)} of {totalElements} entries
-            </div>
-            
-            <div className="pagination-controls-group">
-              <button 
-                className="pagination-arrow-btn" 
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chevron_left</span>
-              </button>
-              
-              <div className="pagination-pages-group">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                  <button 
-                    key={pageNum}
-                    className={`pagination-number-btn ${currentPage === pageNum ? 'active' : ''}`}
-                    onClick={() => setCurrentPage(pageNum)}
-                  >
-                    {pageNum}
-                  </button>
-                ))}
+        {/* 4. 하단 레이아웃 (페이지네이션 & 추가 버튼) */}
+        <div className="joblist-bottom-layout">
+          {!loading && sortedJobs.length > 0 && (
+            <div className="joblist-pagination-row">
+              <div className="pagination-counter-text">
+                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalElements)} of {totalElements} entries
               </div>
+              
+              <div className="pagination-controls-group">
+                <button 
+                  className="pagination-arrow-btn" 
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chevron_left</span>
+                </button>
+                
+                <div className="pagination-pages-group">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                    <button 
+                      key={pageNum}
+                      className={`pagination-number-btn ${currentPage === pageNum ? 'active' : ''}`}
+                      onClick={() => setCurrentPage(pageNum)}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+                </div>
 
-              <button 
-                className="pagination-arrow-btn" 
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chevron_right</span>
-              </button>
+                <button 
+                  className="pagination-arrow-btn" 
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chevron_right</span>
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* 5. 플로팅 액션 버튼 (FAB - 취업 정보 추가) */}
-        <Link 
-          to="/jobs/new"
-          className="floating-add-btn"
-        >
-          <span className="material-symbols-outlined floating-add-btn-icon">add</span>
-          <span className="floating-add-btn-label">취업정보 추가</span>
-        </Link>
+          <Link 
+            to="/jobs/new"
+            className="floating-add-btn"
+            onClick={(e) => {
+              e.preventDefault();
+              setIsAddModalOpen(true);
+            }}
+          >
+            <span className="material-symbols-outlined floating-add-btn-icon">add</span>
+            <span className="floating-add-btn-label">취업정보 추가</span>
+          </Link>
+        </div>
 
         {/* 토스트 알림 컴포넌트 */}
         {showToastVisible && (
           <div className="toast-notification">
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>check_circle</span>
             <span>{toastMessage}</span>
+          </div>
+        )}
+
+        {/* 데이터 소스 추가 모달 */}
+        {isAddModalOpen && (
+          <div className="modal-backdrop" onClick={() => setIsAddModalOpen(false)}>
+            <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+              <button className="modal-close-btn-top" onClick={() => setIsAddModalOpen(false)} title="닫기">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+              <JobAddPage 
+                isModal={true} 
+                onClose={() => setIsAddModalOpen(false)} 
+                onSuccess={handleAddSuccess} 
+              />
+            </div>
           </div>
         )}
 

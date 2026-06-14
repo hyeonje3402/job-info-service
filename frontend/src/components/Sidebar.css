@@ -217,3 +217,219 @@
     padding-bottom: 88px !important; /* 하단 고정 탭 네비게이션 높이(64px) + 여유 */
   }
 }
+
+/* ==========================================================================
+   4. 767px 이하 모바일 전용 반응형 햄버거 메뉴 및 헤더 스타일
+   ========================================================================== */
+@media (max-width: 767px) {
+  /* 기존 하단 탭 네비게이션 바 숨김 */
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+
+  /* 상단 앱바 고정 헤더 */
+  .mobile-top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 56px;
+    background-color: var(--surface-lowest);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 0 16px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mobile-brand .brand-logo {
+    font-size: 20px;
+    color: var(--primary-color);
+  }
+
+  .mobile-brand .brand-name {
+    font-family: var(--font-title);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+
+  /* 햄버거 버튼 (삼선 및 X 변환) */
+  .hamburger-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 4px 0;
+    z-index: 1001;
+  }
+
+  .hamburger-line {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background-color: var(--on-surface-variant);
+    border-radius: 2px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* 햄버거 열림 애니메이션 */
+  .hamburger-btn.open .hamburger-line:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+
+  .hamburger-btn.open .hamburger-line:nth-child(2) {
+    opacity: 0;
+  }
+
+  .hamburger-btn.open .hamburger-line:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+  }
+
+  /* 모바일 메뉴 오버레이 (백드롭) */
+  .mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .mobile-menu-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* 메뉴 드로어 (좌측 슬라이드인) */
+  .mobile-menu-drawer {
+    position: absolute;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100vh;
+    background-color: var(--surface-lowest);
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    padding: 16px 0;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .mobile-menu-overlay.open .mobile-menu-drawer {
+    transform: translateX(280px);
+  }
+
+  /* 드로어 프로필 및 헤더 */
+  .drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 16px;
+  }
+
+  .drawer-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .drawer-avatar-container {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+  }
+
+  .drawer-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .drawer-profile-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .drawer-name {
+    font-family: var(--font-title);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+
+  .drawer-role {
+    font-size: 11px;
+    color: var(--on-surface-variant);
+  }
+
+  .drawer-close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: var(--secondary-color);
+    cursor: pointer;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 드로어 메뉴 목록 */
+  .drawer-menu-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    list-style: none;
+    padding: 0 8px;
+  }
+
+  .drawer-link {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    color: var(--on-surface-variant);
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .drawer-link:hover {
+    background-color: var(--neutral-bg);
+    color: var(--on-surface);
+  }
+
+  .drawer-link.active {
+    background-color: var(--active-bg);
+    color: var(--active-text);
+  }
+
+  /* 모바일에서 하단 패딩 조정 (하단 탭바가 없으므로 여유 패딩 축소) */
+  .content-container {
+    padding-bottom: 24px !important;
+  }
+}

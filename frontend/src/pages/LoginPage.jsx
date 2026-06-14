@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import './LoginPage.css';
 
 function LoginPage() {
@@ -15,9 +15,8 @@ function LoginPage() {
     setError('');
 
     try {
-      // .env의 REACT_APP_BACKEND 환경변수를 활용하여 API 호출
-      const backendUrl = process.env.REACT_APP_BACKEND || '';
-      const response = await axios.post(`${backendUrl}/api/v1/auth/login`, {
+      // api 인스턴스를 활용하여 API 호출 (withCredentials 자동 적용)
+      const response = await api.post('/api/v1/auth/login', {
         email,
         password
       });
@@ -29,15 +28,22 @@ function LoginPage() {
         localStorage.setItem('authToken', token);
         
         alert('로그인에 성공했습니다.');
-        navigate('/admin'); // 관리자 대시보드로 이동
+        navigate('/admin/dashboard'); // 관리자 대시보드로 이동
       } else {
         setError('로그인 처리에 실패했습니다. 응답 형식을 확인하세요.');
       }
     } catch (err) {
       console.error('로그인 에러:', err);
-      // 백엔드 에러 응답 및 일반 네트워크 예외 처리
-      const errorMessage = err.response?.data?.message || '이메일 혹은 비밀번호가 올바르지 않습니다.';
-      setError(errorMessage);
+      // 예외 발생 시 크래시가 나지 않도록 안전하게 에러 메시지 추출
+      let errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.';
+      if (err) {
+        if (err.response && err.response.data && err.response.data.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+      }
+      setError(`로그인에 실패했습니다. (${errorMessage})`);
     }
   };
 
@@ -65,17 +71,10 @@ function LoginPage() {
 
         {/* Error Alert Display */}
         {error && (
-          <div style={{
-            color: '#991B1B',
-            backgroundColor: '#FEE2E2',
-            border: '1px solid #FCA5A5',
-            padding: '12px',
-            borderRadius: '4px',
-            fontSize: '14px',
-            marginBottom: '16px',
-            textAlign: 'center',
-            fontWeight: '500'
-          }}>
+          <div 
+            style={{ color: 'var(--color-error)' }} 
+            className="login-error-alert-box"
+          >
             {error}
           </div>
         )}

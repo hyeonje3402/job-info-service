@@ -228,7 +228,11 @@
   font-size: 24px;
   font-weight: 600;
   line-height: 32px;
-  color: var(--on-surface);
+  color: #111827; /* 어두운 색상으로 변경 */
+  background: none; /* index.css의 h2 그라디언트 덮어쓰기 초기화 */
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: initial;
 }
 
 @media (min-width: 768px) {
@@ -560,14 +564,31 @@
   color: var(--error-color);
 }
 
+/* 하단 레이아웃 (페이지네이션 & 추가 버튼 컨테이너) */
+.joblist-bottom-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 24px; /* lg (24px) */
+  margin-top: 32px; /* xl (32px) */
+  position: relative;
+}
+
+@media (min-width: 1025px) {
+  .joblist-bottom-layout {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
 /* 페이징 영역 */
 .joblist-pagination-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 24px; /* lg (24px) */
-  margin-top: 32px; /* xl (32px) */
+  flex-grow: 1;
 }
 
 .pagination-counter-text {
@@ -699,9 +720,7 @@
 
 @media (min-width: 1025px) {
   .floating-add-btn {
-    position: absolute;
-    bottom: 24px;
-    right: 24px;
+    position: static; /* absolute 해제하여 flex layout 안에서 흐르도록 설정 */
     width: auto;
     height: auto;
     padding: 12px 24px;
@@ -709,6 +728,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
   }
   
   .floating-add-btn-label {
@@ -794,4 +814,89 @@
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+/* 데이터 소스 추가 모달 오버레이 (Backdrop) */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.4); /* slate-900 40% 투명도 */
+  backdrop-filter: blur(4px); /* 글래스모피즘 블러 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+/* 모달 컨테이너 */
+.modal-container {
+  background-color: var(--surface-lowest);
+  border-radius: 8px; /* DESIGN.md 규격: rounded-lg (8px) */
+  box-shadow: 0px 10px 25px -5px rgba(0, 0, 0, 0.1), 0px 8px 10px -6px rgba(0, 0, 0, 0.1); /* Level 2 그림자 */
+  width: 90%;
+  max-width: 672px; /* max-w-2xl 반영 */
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: modalScaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 모달 우측 상단 닫기 버튼 */
+.modal-close-btn-top {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  color: var(--secondary-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.modal-close-btn-top:hover {
+  background-color: rgba(100, 116, 139, 0.15);
+  color: var(--on-surface);
+}
+
+/* 모달에 포함되었을 때 JobAddPage 스타일 오버라이드 */
+.addjob-modal-body {
+  width: 100%;
+  font-family: var(--font-body);
+  color: var(--on-surface);
+  box-sizing: border-box;
+}
+
+.addjob-modal-card {
+  width: 100%;
+  background-color: transparent;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .addjob-modal-card {
+    padding: 32px;
+  }
+}
+
+/* 애니메이션 키프레임 */
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalScaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }

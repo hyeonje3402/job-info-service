@@ -22,6 +22,7 @@ CREATE TABLE sources (
     type VARCHAR(20) NOT NULL, -- PDF, URL, EMAIL
     reference_uri VARCHAR(500) NOT NULL, -- File path, URL, or Email ID
     status VARCHAR(20) NOT NULL, -- SUCCESS, FAILED, PROCESSING
+    raw_content TEXT, -- 원본 내용 추가
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -62,3 +63,6 @@ CREATE INDEX idx_job_postings_company ON job_postings(company_name);
 CREATE INDEX idx_sources_status ON sources(status);
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_extraction_logs_source ON extraction_logs(source_id);
+
+-- For existing environments, add raw_content column if not exists
+ALTER TABLE sources ADD COLUMN IF NOT EXISTS raw_content TEXT;

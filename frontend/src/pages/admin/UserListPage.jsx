@@ -214,7 +214,7 @@ function UserListPage() {
 
   // 실시간 검색어 기반 필터링
   const filteredUsers = users.filter(user => {
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.trim().toLowerCase();
     return (
       user.name.toLowerCase().includes(query) ||
       user.email.toLowerCase().includes(query)

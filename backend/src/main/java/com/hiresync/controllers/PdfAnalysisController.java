@@ -38,6 +38,7 @@ public class PdfAnalysisController {
     private final SourceRepository sourceRepository;
     private final ExtractionLogRepository extractionLogRepository;
     private final ObjectMapper objectMapper;
+    private String lastRawText = "";
 
     public PdfAnalysisController(PdfAnalysisService pdfAnalysisService, JobPostingService jobPostingService, 
                                  SourceRepository sourceRepository, ExtractionLogRepository extractionLogRepository,
@@ -69,6 +70,8 @@ public class PdfAnalysisController {
             
             // 2. Extract raw text from PDF
             String rawText = pdfAnalysisService.extractTextFromPdf(pdfResource);
+            this.lastRawText = rawText;
+            log.info("Extracted PDF Raw Text (length={}): {}", rawText.length(), rawText.length() > 200 ? rawText.substring(0, 200) + "..." : rawText);
 
             if (rawText.isBlank()) {
                 updateSource(source, "FAILED");
@@ -119,12 +122,18 @@ public class PdfAnalysisController {
             
         } catch (IOException e) {
             log.error("IOException during PDF analysis: {}", e.getMessage());
-            if (source != null) updateSource(source, "FAILED");
-            return ResponseEntity.status(500).body(new ApiResponse<>("error", "Error reading PDF file"));
+            if (source != null) {
+                updateSource(source, "FAILED");
+                saveExtractionLog(source, "gpt-4o", "EMPTY", startTime, "IOException: " + e.getMessage());
+            }
+            return ResponseEntity.status(500).body(new ApiResponse<>("error", "Error reading PDF file: " + e.getMessage()));
         } catch (Exception e) {
             log.error("Unexpected error during PDF analysis: {}", e.getMessage(), e);
-            if (source != null) updateSource(source, "FAILED");
-            return ResponseEntity.status(500).body(new ApiResponse<>("error", "Unexpected error during PDF analysis"));
+            if (source != null) {
+                updateSource(source, "FAILED");
+                saveExtractionLog(source, "gpt-4o", "EMPTY", startTime, "Exception: " + e.getMessage() + " (" + e.getClass().getName() + ")");
+            }
+            return ResponseEntity.status(500).body(new ApiResponse<>("error", "Unexpected error during PDF analysis: " + e.getMessage()));
         }
     }
 
@@ -212,5 +221,24 @@ public class PdfAnalysisController {
         logEntry.setErrorMessage(error);
         logEntry.setProcessedAt(LocalDateTime.now());
         extractionLogRepository.save(logEntry);
+    }
+
+    @GetMapping("/debug/logs")
+    public ResponseEntity<?> getDebugLogs() {
+        java.util.List<java.util.Map<String, Object>> logs = new java.util.ArrayList<>();
+        for (ExtractionLog logEntry : extractionLogRepository.findAll()) {
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", logEntry.getId());
+            map.put("modelVersion", logEntry.getModelVersion());
+            map.put("errorMessage", logEntry.getErrorMessage());
+            map.put("processedAt", logEntry.getProcessedAt());
+            map.put("processingTimeMs", logEntry.getProcessingTimeMs());
+            map.put("rawData", logEntry.getRawData());
+            logs.add(map);
+        }
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("logs", logs);
+        response.put("lastRawText", this.lastRawText);
+        return ResponseEntity.ok(response);
     }
 }

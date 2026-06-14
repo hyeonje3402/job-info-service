@@ -43,10 +43,13 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
+        http.csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/v1/sources/**")
+                        .disable()
+                )
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfiguration = new org.springframework.web.cors.CorsConfiguration();
-                    corsConfiguration.setAllowedOrigins(java.util.List.of("http://localhost:3000", "http://localhost:8080"));
+                    corsConfiguration.setAllowedOrigins(java.util.List.of("http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8080"));
                     corsConfiguration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     corsConfiguration.setAllowedHeaders(java.util.List.of("*"));
                     corsConfiguration.setAllowCredentials(true);
@@ -55,9 +58,10 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers("/api/v1/auth/**").permitAll()
-                                .requestMatchers(HttpMethod.PUT, "/api/v1/jobs/**").hasAuthority("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/v1/jobs/**").hasAuthority("ADMIN")
-                                .requestMatchers("/api/v1/sources/**").hasAuthority("ADMIN")
+                                .requestMatchers(HttpMethod.PUT, "/api/v1/jobs/**").hasAnyAuthority("ADMIN", "ROLE_ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/v1/jobs/**").hasAnyAuthority("ADMIN", "ROLE_ADMIN")
+                                .requestMatchers("/api/jobs/import").hasAnyAuthority("ADMIN", "ROLE_ADMIN")
+                                .requestMatchers("/api/v1/sources/**").permitAll()
                                 .requestMatchers("/api/v1/**").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()

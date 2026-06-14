@@ -198,7 +198,7 @@ function AdminDashboard() {
         </header>
 
         <section className="dashboard-header-section">
-          <h2 className="dashboard-main-title">대시보드 개요</h2>
+          <h2 className="dashboard-main-title">관리자 대시보드</h2>
           <p className="dashboard-main-subtitle">시스템의 주요 지표와 최근 활동을 확인하세요.</p>
         </section>
 

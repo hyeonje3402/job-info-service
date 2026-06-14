@@ -1,30 +1,30 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './Sidebar.css';
 
 const Sidebar = () => {
-  // Stitch 스펙 아바타 이미지 주소
-  const avatarUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuCYb0d6vKegftTck0XCuVKXgz-Ki8XxbChnwdy2rVDPGw5fBRTwje9E7tKCE7qN4ma3Qnar0ngdgmlb7U_E8gV5depsG_MdW4tXGlOvpy7rkC4Z4DQ5yG-rrBVXVwKNuuCskINGHFIP0qLLGz3bXVvegjH5uxr-ydOlQmuYveVeTIwpL1JcK4fUnck_HzeUyYOKWQxhqtpFm3g9_ybw_P-TssxKmmrTCGR51F0fj24cqCRdqwNyx_Ol20bbK2bBxeO1Kn_JvflkU0A6";
+  const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = async (e) => {
+    e.preventDefault();
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND || '';
+      await axios.post(`${backendUrl}/api/v1/auth/logout`);
+    } catch (err) {
+      console.error('로그아웃 에러:', err);
+    } finally {
+      localStorage.removeItem('authToken');
+      navigate('/login');
+    }
+  };
 
   return (
     <div className="sidebar-root">
       {/* 1. 데스크톱 사이드바 (lg 이상 활성화) */}
       <aside className="desktop-sidebar">
-        {/* 프로필 헤더 */}
-        <div className="sidebar-profile">
-          <div className="profile-avatar-container">
-            <img 
-              src={avatarUrl} 
-              alt="System Administrator Avatar" 
-              className="profile-avatar" 
-            />
-          </div>
-          <div className="profile-info">
-            <span className="profile-name">Admin User</span>
-            <span className="profile-role">System Administrator</span>
-            <span className="profile-version">v1.0.4</span>
-          </div>
-        </div>
+
 
         {/* 메뉴 리스트 */}
         <ul className="sidebar-menu-list">
@@ -67,16 +67,31 @@ const Sidebar = () => {
             <NavLink 
               to="/settings" 
               className={({ isActive }) => isActive ? "menu-link active" : "menu-link"}
-              onClick={(e) => {
-                e.preventDefault();
-                alert('시스템 설정 기능은 후속 스프린트에서 구현 예정입니다.');
-              }}
             >
               <span className="material-symbols-outlined menu-link-icon">
                 settings
               </span>
               <span>System Settings</span>
             </NavLink>
+          </li>
+          <li>
+            <button 
+              onClick={handleLogout}
+              className="menu-link logout-btn"
+              style={{
+                background: 'none',
+                border: 'none',
+                width: '100%',
+                textAlign: 'left',
+                cursor: 'pointer',
+                font: 'inherit'
+              }}
+            >
+              <span className="material-symbols-outlined menu-link-icon">
+                logout
+              </span>
+              <span>로그아웃</span>
+            </button>
           </li>
         </ul>
       </aside>
@@ -115,6 +130,109 @@ const Sidebar = () => {
           <span className="mobile-nav-label">Users</span>
         </NavLink>
       </nav>
+
+      {/* 3. 모바일 상단 헤더 & 햄버거 메뉴 (767px 이하 활성화) */}
+      <header className="mobile-top-header">
+        <div className="mobile-brand">
+          <span className="material-symbols-outlined brand-logo">work</span>
+          <span className="brand-name">HireSync</span>
+        </div>
+        <button 
+          className={`hamburger-btn ${isOpen ? 'open' : ''}`} 
+          onClick={() => setIsOpen(!isOpen)} 
+          aria-label="메뉴 열기"
+        >
+          <span className="hamburger-line"></span>
+          <span className="hamburger-line"></span>
+          <span className="hamburger-line"></span>
+        </button>
+      </header>
+
+      {/* 4. 모바일 햄버거 메뉴 드롭다운/슬라이드 오버레이 (767px 이하 활성화 및 isOpen 일때만 노출) */}
+      <div 
+        className={`mobile-menu-overlay ${isOpen ? 'open' : ''}`} 
+        onClick={() => setIsOpen(false)}
+      >
+        <nav className="mobile-menu-drawer" onClick={(e) => e.stopPropagation()}>
+          <div className="drawer-header" style={{ justifyContent: 'flex-end' }}>
+            <button className="drawer-close-btn" onClick={() => setIsOpen(false)}>&times;</button>
+          </div>
+          <ul className="drawer-menu-list">
+            <li>
+              <NavLink 
+                to="/admin" 
+                className={({ isActive }) => isActive ? "drawer-link active" : "drawer-link"}
+                onClick={() => setIsOpen(false)}
+                end
+              >
+                <span className="material-symbols-outlined menu-link-icon" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  dashboard
+                </span>
+                <span>Dashboard</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/" 
+                className={({ isActive }) => isActive ? "drawer-link active" : "drawer-link"}
+                onClick={() => setIsOpen(false)}
+                end
+              >
+                <span className="material-symbols-outlined menu-link-icon">
+                  work
+                </span>
+                <span>Job Listings</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/users-management" 
+                className={({ isActive }) => isActive ? "drawer-link active" : "drawer-link"}
+                onClick={() => setIsOpen(false)}
+              >
+                <span className="material-symbols-outlined menu-link-icon">
+                  group
+                </span>
+                <span>User Management</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/settings" 
+                className={({ isActive }) => isActive ? "drawer-link active" : "drawer-link"}
+                onClick={() => setIsOpen(false)}
+              >
+                <span className="material-symbols-outlined menu-link-icon">
+                  settings
+                </span>
+                <span>System Settings</span>
+              </NavLink>
+            </li>
+            <li>
+              <button 
+                onClick={(e) => {
+                  handleLogout(e);
+                  setIsOpen(false);
+                }}
+                className="drawer-link logout-btn"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  width: '100%',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  font: 'inherit'
+                }}
+              >
+                <span className="material-symbols-outlined menu-link-icon">
+                  logout
+                </span>
+                <span>로그아웃</span>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
     </div>
   );
 };

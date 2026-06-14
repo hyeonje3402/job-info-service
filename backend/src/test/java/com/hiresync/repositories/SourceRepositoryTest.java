@@ -32,4 +32,22 @@ class SourceRepositoryTest {
         assertThat(found.get().getType()).isEqualTo("URL");
         assertThat(found.get().getReferenceUri()).isEqualTo("http://example.com/job");
     }
+
+    @Test
+    void shouldSaveAndFindSourceWithRawContent() {
+        // Given
+        Source source = new Source();
+        source.setType("PDF");
+        source.setReferenceUri("path/to/resume.pdf");
+        source.setStatus("SUCCESS");
+        source.setRawContent("This is the raw content of the PDF.");
+        sourceRepository.save(source);
+
+        // When
+        Optional<Source> found = sourceRepository.findById(source.getId());
+
+        // Then
+        assertThat(found).isPresent();
+        assertThat(found.get().getRawContent()).isEqualTo("This is the raw content of the PDF.");
+    }
 }

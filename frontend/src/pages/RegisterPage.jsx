@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useNavigate, Link } from 'react-router-dom';
+import api from '../services/api';
 import './RegisterPage.css';
 
 function RegisterPage() {
@@ -15,10 +15,8 @@ function RegisterPage() {
     setError('');
 
     try {
-      const backendUrl = process.env.REACT_APP_BACKEND || '';
-      
       // API Contracts 규격에 맞게 POST /api/v1/auth/register 전송
-      const response = await axios.post(`${backendUrl}/api/v1/auth/register`, {
+      const response = await api.post('/api/v1/auth/register', {
         email,
         password,
         name,
@@ -153,6 +151,13 @@ function RegisterPage() {
             </button>
           </div>
         </form>
+        {/* Footer Links */}
+        <div className="login-footer" style={{ marginTop: '16px', textAlign: 'center' }}>
+          <span className="footer-text">이미 계정이 있으신가요? </span>
+          <Link to="/login" className="signup-link">
+            로그인
+          </Link>
+        </div>
       </main>
     </div>
   );

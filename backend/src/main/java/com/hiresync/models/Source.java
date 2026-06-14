@@ -21,6 +21,9 @@ public class Source {
     @Column(nullable = false, length = 20)
     private String status; // SUCCESS, FAILED, PROCESSING
     
+    @Column(name = "raw_content", columnDefinition = "TEXT")
+    private String rawContent;
+    
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

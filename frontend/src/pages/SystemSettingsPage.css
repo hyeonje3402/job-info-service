@@ -1,0 +1,450 @@
+/* System Settings CSS (DESIGN.md 가이드라인 준수) */
+
+.settings-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--surface, #F7F9FB);
+  color: var(--on-surface, #191C1E);
+  font-family: 'Noto Sans', sans-serif;
+}
+
+.settings-wrapper {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px; /* Spacing 'lg' */
+  box-sizing: border-box;
+}
+
+/* 1. 상단 앱바 스타일 */
+.settings-top-appbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  border-bottom: 1px solid var(--outline-variant, #E2E8F0);
+  background-color: var(--surface-container-lowest, #FFFFFF);
+  margin-bottom: 24px;
+  padding: 0 16px;
+  border-radius: 8px; /* Corner radius 'lg' */
+}
+
+.appbar-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.appbar-logo {
+  color: var(--primary, #1A5AD7);
+  font-size: 24px;
+}
+
+.appbar-text {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* 2. 헤더 섹션 */
+.settings-header-section {
+  margin-bottom: 32px; /* Spacing 'xl' */
+}
+
+.settings-main-title {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 32px; /* headline-lg */
+  font-weight: 600;
+  color: var(--on-surface, #191C1E);
+  margin: 0 0 8px 0;
+}
+
+.settings-main-subtitle {
+  font-size: 16px; /* body-md */
+  color: var(--secondary-color, #64748B);
+  margin: 0;
+}
+
+/* 3. 레이아웃 구조 */
+.settings-layout-container {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* 4. 좌측 탭 사이드바 */
+.settings-tabs-sidebar {
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: var(--surface-container-lowest, #FFFFFF);
+  border: 1px solid var(--outline-variant, #E2E8F0);
+  border-radius: 8px;
+  padding: 16px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.tab-btn-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  text-align: left;
+  cursor: pointer;
+  color: var(--on-surface-variant, #434654);
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.tab-btn-item:hover {
+  background-color: var(--surface-container, #ECEEF0);
+  color: var(--primary, #1A5AD7);
+}
+
+.tab-btn-item.active {
+  background-color: rgba(26, 90, 215, 0.1);
+  color: var(--primary, #1A5AD7);
+}
+
+.tab-icon {
+  font-size: 20px;
+}
+
+/* 5. 우측 설정 폼 패널 */
+.settings-form-panel {
+  flex-grow: 1;
+  background-color: var(--surface-container-lowest, #FFFFFF);
+  border: 1px solid var(--outline-variant, #E2E8F0);
+  border-radius: 8px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.form-panel-content {
+  padding: 32px;
+}
+
+.tab-content-pane {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.pane-title {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 24px 0;
+  border-bottom: 2px solid var(--primary, #1A5AD7);
+  padding-bottom: 8px;
+  display: inline-block;
+}
+
+/* 6. 입력 필드 그룹 */
+.form-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.form-input-group.row-flex {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--outline-variant, #E2E8F0);
+  padding-bottom: 20px;
+}
+
+.input-field-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface, #191C1E);
+}
+
+.form-input-text, .form-input-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--outline-variant, #E2E8F0);
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'Noto Sans', sans-serif;
+  background-color: var(--surface-container-lowest, #FFFFFF);
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-input-text:focus, .form-input-select:focus {
+  outline: none;
+  border-color: var(--primary, #1A5AD7);
+  box-shadow: 0 0 0 3px rgba(26, 90, 215, 0.15);
+}
+
+.form-input-text:disabled, .form-input-select:disabled {
+  background-color: var(--surface-dim, #D8DADC);
+  color: var(--secondary-color, #64748B);
+  cursor: not-allowed;
+}
+
+.input-helper-text {
+  font-size: 12px;
+  color: var(--secondary-color, #64748B);
+  margin: 0;
+}
+
+/* 7. 토글 스위치 스타일 */
+.toggle-switch-container {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toggle-switch-container input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--surface-dim, #D8DADC);
+  transition: .3s;
+  border-radius: 24px;
+}
+
+.toggle-switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+  box-shadow: 0px 2px 4px rgba(0,0,0,0.1);
+}
+
+input:checked + .toggle-switch-slider {
+  background-color: var(--primary, #1A5AD7);
+}
+
+input:checked + .toggle-switch-slider:before {
+  transform: translateX(24px);
+}
+
+/* 8. 시스템 진단 / 위험 지대 */
+.diagnostics-status-card {
+  background-color: var(--surface-container, #ECEEF0);
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid var(--outline-variant, #E2E8F0);
+}
+
+.status-indicator-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.status-dot.online {
+  background-color: #10B981; /* Success */
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+.diagnostics-details p {
+  font-size: 13px;
+  margin: 6px 0;
+  color: var(--on-surface-variant, #434654);
+}
+
+.danger-zone-container {
+  border: 1px solid #FEE2E2;
+  background-color: #FFFDFD;
+  border-radius: 6px;
+  padding: 24px;
+}
+
+.danger-zone-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #991B1B; /* Error text */
+  margin: 0 0 4px 0;
+}
+
+.danger-zone-desc {
+  font-size: 12px;
+  color: var(--secondary-color, #64748B);
+  margin: 0 0 20px 0;
+}
+
+.danger-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  border-top: 1px solid #FEE2E2;
+  padding-top: 16px;
+}
+
+.action-desc-group h5 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: var(--on-surface, #191C1E);
+}
+
+.action-desc-group p {
+  font-size: 12px;
+  color: var(--secondary-color, #64748B);
+  margin: 0;
+}
+
+.danger-btn-action {
+  background-color: #EF4444;
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease;
+}
+
+.danger-btn-action:hover {
+  background-color: #991B1B;
+}
+
+.danger-btn-action:disabled {
+  background-color: var(--surface-dim, #D8DADC);
+  cursor: not-allowed;
+}
+
+/* 9. 설정 하단 패널 푸터 */
+.form-panel-footer {
+  border-top: 1px solid var(--outline-variant, #E2E8F0);
+  background-color: var(--surface, #F7F9FB);
+  padding: 16px 32px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.settings-save-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--primary, #1A5AD7);
+  color: #FFFFFF;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.settings-save-btn:hover {
+  background-color: #113FA3;
+}
+
+.settings-save-btn:disabled {
+  background-color: var(--surface-dim, #D8DADC);
+  cursor: not-allowed;
+}
+
+/* 10. 토스트 알림 팝업 */
+.settings-toast-popup {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #065F46;
+  color: #D1FAE5;
+  padding: 12px 20px;
+  border-radius: 6px;
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+  z-index: 1000;
+  font-size: 14px;
+  font-weight: 600;
+  animation: slideInUp 0.3s ease-out;
+}
+
+.toast-check-icon {
+  font-size: 20px;
+}
+
+/* 애니메이션 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInUp {
+  from { transform: translateY(100px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* 11. 반응형 디바이스 뷰포트 지원 */
+@media (max-width: 768px) {
+  .settings-layout-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .settings-tabs-sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 12px;
+  }
+  
+  .tab-btn-item {
+    padding: 8px 14px;
+  }
+  
+  .form-panel-content {
+    padding: 20px;
+  }
+  
+  .danger-action-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .danger-btn-action {
+    width: 100%;
+  }
+}

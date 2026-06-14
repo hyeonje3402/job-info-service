@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hiresync UI Mockup</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; margin: 0; background: #f4f7f6; color: #333; }
+        .header { background: #2c3e50; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .container { display: flex; height: calc(100vh - 60px); }
+        
+        /* Job Seeker View */
+        .job-list { flex: 1; padding: 20px; overflow-y: auto; }
+        .job-card { background: white; border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .job-info { display: flex; gap: 20px; align-items: center; }
+        .company { font-weight: bold; width: 150px; }
+        .position { color: #007bff; font-weight: bold; width: 250px; }
+        .details { color: #666; font-size: 0.9em; }
+        .salary { color: #e67e22; font-weight: bold; }
+        
+        /* Admin Review View */
+        .admin-view { flex: 1; display: flex; border-left: 2px solid #2c3e50; background: #fff; }
+        .source-pane { flex: 1; background: #eee; border-right: 1px solid #ddd; padding: 20px; overflow-y: auto; }
+        .editor-pane { flex: 1; padding: 20px; overflow-y: auto; }
+        .pdf-placeholder { width: 100%; height: 500px; border: 2px dashed #999; display: flex; align-items: center; justify-content: center; color: #999; background: #f9f9f9; }
+        
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; color: #555; }
+        input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-primary { background: #27ae60; color: white; }
+        .btn-secondary { background: #95a5a6; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .actions { margin-top: 20px; display: flex; gap: 10px; }
+        
+        .status-badge { padding: 2px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+        .status-draft { background: #f1c40f; color: #000; }
+        .status-published { background: #2ecc71; color: #fff; }
+        
+        h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Hiresync Admin Dashboard</h1>
+        <div>관리자 님 환영합니다</div>
+    </div>
+    
+    <div class="container">
+        <!-- 구직자 목록 뷰 (왼쪽) -->
+        <div class="job-list">
+            <h2>구직자 채용 목록 (사람인 스타일)</h2>
+            <div class="job-card">
+                <div class="job-info">
+                    <div class="company">(주)네이버</div>
+                    <div class="position">백엔드 개발자 (Java/Spring)</div>
+                    <div class="details">경기 성남시 | 신입/경력 | ~2026.07.11</div>
+                </div>
+                <div class="salary">6,000만원 ~</div>
+                <div class="status-badge status-published">PUBLISHED</div>
+            </div>
+            <div class="job-card" style="border: 2px solid #3498db; background: #ebf5fb;">
+                <div class="job-info">
+                    <div class="company">(주)카카오</div>
+                    <div class="position">프론트엔드 개발자 (React)</div>
+                    <div class="details">제주 제주시 | 경력 | ~2026.08.01</div>
+                </div>
+                <div class="salary">7,000만원 ~</div>
+                <div class="status-badge status-draft">DRAFT (검토중)</div>
+            </div>
+            <div class="job-card">
+                <div class="job-info">
+                    <div class="company">토스</div>
+                    <div class="position">시니어 인프라 엔지니어</div>
+                    <div class="details">서울 강남구 | 경력 | 상시채용</div>
+                </div>
+                <div class="salary">8,500만원 ~</div>
+                <div class="status-badge status-published">PUBLISHED</div>
+            </div>
+        </div>
+
+        <!-- 관리자 검토 뷰 (오른쪽) -->
+        <div class="admin-view">
+            <div class="source-pane">
+                <h2>원본 문서 (PDF/URL)</h2>
+                <div class="pdf-placeholder">
+                    <div>
+                        <p style="font-size: 1.5em; margin-bottom: 5px;">📄 recruitment_info.pdf</p>
+                        <p>[관리자님이 업로드하신 PDF 내용이 여기에 표시됩니다]</p>
+                        <p style="font-size: 0.8em;">(JSoup으로 긁어온 원본 텍스트도 이곳에서 대조 가능)</p>
+                    </div>
+                </div>
+            </div>
+            <div class="editor-pane">
+                <h2>AI 추출 결과 확인 및 수정</h2>
+                <div class="form-group">
+                    <label>회사명</label>
+                    <input type="text" value="(주)카카오">
+                </div>
+                <div class="form-group">
+                    <label>채용 포지션</label>
+                    <input type="text" value="프론트엔드 개발자 (React)">
+                </div>
+                <div class="form-group">
+                    <label>회사 위치</label>
+                    <input type="text" value="제주특별자치도 제주시 첨단로 242">
+                </div>
+                <div class="form-group">
+                    <label>채용 조건</label>
+                    <textarea rows="4">React 18 이상 경험 필수, TypeScript 능숙자 우대, 관련 경력 3년 이상</textarea>
+                </div>
+                <div class="form-group">
+                    <label>예상 급여</label>
+                    <input type="text" value="7,000만원 ~">
+                </div>
+                <div class="form-group">
+                    <label>지원 기간</label>
+                    <input type="text" value="2026-08-01 까지">
+                </div>
+                <div class="form-group">
+                    <label>지원 방법</label>
+                    <input type="text" value="당사 홈페이지 접수 (https://careers.kakao.com)">
+                </div>
+                
+                <div class="actions">
+                    <button class="btn btn-primary">✅ 승인 및 공개</button>
+                    <button class="btn btn-secondary">💾 임시 저장</button>
+                    <button class="btn btn-danger">🗑 삭제</button>
+                </div>
+                <p style="font-size: 0.8em; color: #7f8c8d; margin-top: 15px;">* '승인 및 공개'를 누르면 즉시 구직자에게 노출됩니다.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
