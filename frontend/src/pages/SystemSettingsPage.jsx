@@ -11,7 +11,8 @@ const DEFAULT_SETTINGS = {
   promptVersion: 'v1.2.0 (최신)',
   crawlerEnabled: true,
   crawlerDelay: 1000,
-  debugMode: false
+  debugMode: false,
+  emailNotification: false
 };
 
 function SystemSettingsPage() {
@@ -52,7 +53,7 @@ function SystemSettingsPage() {
     setTimeout(() => {
       localStorage.setItem('hiresync_system_settings', JSON.stringify(settings));
       setIsSaving(false);
-      triggerToast('설정이 성공적으로 저장되었습니다.');
+      triggerToast('설정이 저장되었습니다');
     }, 800000 / 1000000); // 800ms 지연으로 부드러운 UX 유도
   };
 
@@ -159,6 +160,22 @@ function SystemSettingsPage() {
                 <div className="tab-content-pane">
                   <h3 className="pane-title">일반 시스템 설정</h3>
                   
+                  {/* 이메일 알림 활성화 체크박스 */}
+                  <div className="form-input-group row-flex">
+                    <div>
+                      <label className="input-field-label">이메일 알림 활성화</label>
+                      <p className="input-helper-text" style={{ marginTop: '4px' }}>시스템 장애나 주요 이벤트 발생 시 관리자 이메일로 알림을 전송합니다.</p>
+                    </div>
+                    <label className="toggle-switch-container">
+                      <input 
+                        type="checkbox"
+                        checked={settings.emailNotification || false}
+                        onChange={(e) => handleInputChange('emailNotification', e.target.checked)}
+                      />
+                      <span className="toggle-switch-slider"></span>
+                    </label>
+                  </div>
+
                   <div className="form-input-group">
                     <label className="input-field-label">시스템 기본 타이틀</label>
                     <input 

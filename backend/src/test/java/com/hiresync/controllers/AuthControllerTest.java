@@ -48,10 +48,10 @@ class AuthControllerTest {
 
     @Test
     void shouldRegisterUserSuccessfully() throws Exception {
-        User newUser = new User();
-        newUser.setEmail("new@example.com");
-        newUser.setPassword("password123");
-        newUser.setName("New User");
+        Map<String, Object> newUser = new HashMap<>();
+        newUser.put("email", "new@example.com");
+        newUser.put("password", "password123");
+        newUser.put("name", "New User");
 
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)

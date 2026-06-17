@@ -49,6 +49,8 @@ class UrlScrapingServiceTest {
         when(Jsoup.connect(url)).thenReturn(connection);
         when(connection.timeout(anyInt())).thenReturn(connection);
         when(connection.userAgent(anyString())).thenReturn(connection);
+        when(connection.followRedirects(anyBoolean())).thenReturn(connection);
+        when(connection.referrer(anyString())).thenReturn(connection);
         when(connection.get()).thenReturn(document);
         when(document.body()).thenReturn(body);
         when(body.html()).thenReturn(html);
@@ -75,6 +77,8 @@ class UrlScrapingServiceTest {
         when(Jsoup.connect(url)).thenReturn(connection);
         when(connection.timeout(anyInt())).thenReturn(connection);
         when(connection.userAgent(anyString())).thenReturn(connection);
+        when(connection.followRedirects(anyBoolean())).thenReturn(connection);
+        when(connection.referrer(anyString())).thenReturn(connection);
         when(connection.get()).thenThrow(new IOException("Connection refused"));
 
         // When & Then
@@ -82,7 +86,7 @@ class UrlScrapingServiceTest {
             urlScrapingService.scrapeUrl(url);
         });
 
-        assertTrue(exception.getMessage().contains("URL 스크래핑 실패"));
+        assertTrue(exception.getMessage().contains("URL 연결 실패"));
     }
 
     @Test
@@ -97,6 +101,8 @@ class UrlScrapingServiceTest {
         when(Jsoup.connect(url)).thenReturn(connection);
         when(connection.timeout(anyInt())).thenReturn(connection);
         when(connection.userAgent(anyString())).thenReturn(connection);
+        when(connection.followRedirects(anyBoolean())).thenReturn(connection);
+        when(connection.referrer(anyString())).thenReturn(connection);
         when(connection.get()).thenReturn(document);
         when(document.body()).thenReturn(body);
         when(body.html()).thenReturn("");

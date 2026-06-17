@@ -163,8 +163,12 @@ class JobPostingControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void shouldReturn404WhenUpdatingNonExistentJob() throws Exception {
-        JobPosting job = new JobPosting();
+        com.hiresync.models.JobPostingRequest job = new com.hiresync.models.JobPostingRequest();
         job.setCompanyName("Ghost Company");
+        job.setPosition("Developer");
+        job.setLocation("Seoul");
+        job.setRequirements("Requirements");
+        job.setStatus("PENDING");
         
         mockMvc.perform(put("/api/v1/jobs/9999")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -206,7 +210,7 @@ class JobPostingControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
-                .andExpect(jsonPath("$.data.companyName").value("Example Co"));
+                .andExpect(jsonPath("$.data[0].companyName").value("Example Co"));
     }
 
     @Test
@@ -222,8 +226,8 @@ class JobPostingControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("error"))
-                .andExpect(jsonPath("$.message").value("No data extracted from URL"));
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data").isEmpty());
     }
 
     @Test
@@ -237,7 +241,8 @@ class JobPostingControllerTest {
         mockMvc.perform(post("/api/v1/sources/url")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.status").value("error"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data").isEmpty());
     }
 }

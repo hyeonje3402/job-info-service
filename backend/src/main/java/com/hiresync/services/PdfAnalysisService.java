@@ -70,8 +70,26 @@ public class PdfAnalysisService {
         }
         """;
 
-    public PdfAnalysisService(ChatClient.Builder chatClientBuilder) {
+    private final RestClient restClient;
+
+    public PdfAnalysisService(ChatClient.Builder chatClientBuilder, RestClient.Builder restClientBuilder) {
         this.chatClient = chatClientBuilder.build();
+        
+        String apiKey = System.getenv("OPENAI_API_KEY");
+        if (apiKey == null || apiKey.isBlank()) {
+            apiKey = "sk-n4b-HXuTkrclWDvt11zViA";
+        }
+        
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(120000);
+        requestFactory.setReadTimeout(120000);
+
+        this.restClient = restClientBuilder
+            .requestFactory(requestFactory)
+            .baseUrl("http://llm.ycbjkim.com")
+            .defaultHeader("Authorization", "Bearer " + apiKey)
+            .defaultHeader("Accept-Encoding", "identity")
+            .build();
     }
 
     public String extractTextFromPdf(Resource pdfResource) {
@@ -146,18 +164,7 @@ public class PdfAnalysisService {
         }
 
         try {
-            SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-            requestFactory.setConnectTimeout(120000);
-            requestFactory.setReadTimeout(120000);
-
-            RestClient customRestClient = RestClient.builder()
-                .requestFactory(requestFactory)
-                .baseUrl("http://llm.ycbjkim.com")
-                .defaultHeader("Authorization", "Bearer " + apiKey)
-                .defaultHeader("Accept-Encoding", "identity")
-                .build();
-                
-            String responseJson = customRestClient.post()
+            String responseJson = this.restClient.post()
                 .uri("/v1/chat/completions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(requestBody)
@@ -168,7 +175,14 @@ public class PdfAnalysisService {
             
             ObjectMapper tempMapper = new ObjectMapper();
             JsonNode root = tempMapper.readTree(responseJson);
-            String content = root.path("choices").get(0).path("message").path("content").asText();
+            JsonNode contentNode = root.path("choices").get(0).path("message").path("content");
+            if (contentNode.isNull() || contentNode.isMissingNode()) {
+                return "{\"jobPostings\": []}";
+            }
+            String content = contentNode.asText();
+            if (content == null || content.trim().isEmpty() || "null".equals(content.trim())) {
+                return "{\"jobPostings\": []}";
+            }
             
             return content;
         } catch (Exception e) {

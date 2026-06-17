@@ -22,7 +22,7 @@ public class ApiUsageLogController {
     private ApiUsageLogService apiUsageLogService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ApiResponse<Page<ApiUsageLog>> getApiLogs(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,

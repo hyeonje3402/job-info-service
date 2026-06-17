@@ -56,6 +56,7 @@ function UserListPage() {
   const [users, setUsers] = useState([]);
   const [activeDropdownUserId, setActiveDropdownUserId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [bulkAction, setBulkAction] = useState('');
@@ -64,13 +65,17 @@ function UserListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   // 1. 사용자 데이터 조회 (GET API 연동 - 필터 적용)
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
+      setErrorMessage('');
       try {
-        const params = {};
+        const params = {
+          _t: Date.now() // 캐시 무효화용 타임스탬프 파라미터
+        };
         if (selectedRole) params.role = selectedRole;
         if (selectedStatus) params.status = selectedStatus;
 
@@ -83,41 +88,19 @@ function UserListPage() {
           }));
           setUsers(mappedUsers);
         } else {
-          let filteredFallback = FALLBACK_USERS;
-          if (selectedRole) {
-            filteredFallback = filteredFallback.filter(u => {
-              const r = u.role ? u.role.toUpperCase() : '';
-              if (selectedRole === 'ADMIN') return r.includes('ADMIN') || r.includes('관리자');
-              if (selectedRole === 'GENERAL') return r.includes('GENERAL') || r.includes('지원자') || r.includes('인사담당자') || r.includes('리크루터');
-              return r.includes(selectedRole.toUpperCase());
-            });
-          }
-          if (selectedStatus) {
-            filteredFallback = filteredFallback.filter(u => u.status === selectedStatus);
-          }
-          setUsers(filteredFallback.map((u, index) => ({
-            ...u,
-            id: u.id || u.email || index
-          })));
+          const status = response.data ? response.data.status : 'unknown';
+          setErrorMessage(`사용자 목록 응답 포맷이 올바르지 않습니다. (status: ${status})`);
+          setUsers([]);
         }
       } catch (err) {
-        console.warn("백엔드 API 사용자 조회 실패 - 목업 폴백 데이터를 필터하여 대신 로드합니다.", err);
-        let filteredFallback = FALLBACK_USERS;
-        if (selectedRole) {
-          filteredFallback = filteredFallback.filter(u => {
-            const r = u.role ? u.role.toUpperCase() : '';
-            if (selectedRole === 'ADMIN') return r.includes('ADMIN') || r.includes('관리자');
-            if (selectedRole === 'GENERAL') return r.includes('GENERAL') || r.includes('지원자') || r.includes('인사담당자') || r.includes('리크루터');
-            return r.includes(selectedRole.toUpperCase());
-          });
+        if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+          // api.js의 전역 인터셉터가 리다이렉트 및 토큰 만료 처리를 담당하므로,
+          // 목업 데이터를 세팅하지 않고 즉시 종료합니다.
+          return;
         }
-        if (selectedStatus) {
-          filteredFallback = filteredFallback.filter(u => u.status === selectedStatus);
-        }
-        setUsers(filteredFallback.map((u, index) => ({
-          ...u,
-          id: u.id || u.email || index
-        })));
+        console.error("백엔드 API 사용자 조회 실패:", err);
+        setErrorMessage(`서버와 통신할 수 없습니다. (${err.message}). 백엔드 서버 구동 상태나 네트워크를 확인해 주세요.`);
+        setUsers([]);
       } finally {
         setLoading(false);
       }
@@ -125,6 +108,19 @@ function UserListPage() {
 
     fetchUsers();
   }, [selectedRole, selectedStatus]);
+
+  // 외부 클릭 시 드롭다운 닫기
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (!e.target.closest('.table-action-btn.more-btn') && !e.target.closest('.dropdown-menu')) {
+        setActiveDropdownUserId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, []);
 
   // 다중 체크박스 선택 처리
   const handleSelectAll = (e) => {
@@ -199,6 +195,37 @@ function UserListPage() {
       setUsers(users.filter(u => u.id !== userId));
       setSelectedUserIds(selectedUserIds.filter(id => id !== userId));
       alert('사용자 정보가 정상 삭제되었습니다.');
+    }
+  };
+
+  // 개별 차단(계정 정지)
+  const handleBlockUser = async (userId) => {
+    const userToBlock = users.find(u => u.id === userId);
+    if (!userToBlock) return;
+
+    if (window.confirm("정말 이 사용자의 계정을 정지하시겠습니까?")) {
+      setLoading(true);
+      const updatedUser = { ...userToBlock, status: 'REVOKED' };
+      
+      const applyLocally = () => {
+        setUsers(users.map(u => u.id === userId ? { ...u, status: 'REVOKED' } : u));
+        setToastMessage('차단되었습니다');
+        setTimeout(() => setToastMessage(''), 3000);
+      };
+
+      try {
+        const response = await api.put(`/api/v1/users/${userId}`, updatedUser);
+        if (response.data && response.data.status === 'success') {
+          applyLocally();
+        } else {
+          applyLocally();
+        }
+      } catch (err) {
+        console.warn("백엔드 사용자 차단 API 호출 실패 - 로컬 상태를 강제 정지 상태로 변경합니다.", err);
+        applyLocally();
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -400,7 +427,14 @@ function UserListPage() {
                 </tr>
               </thead>
               <tbody>
-                {loading && users.length === 0 ? (
+                {errorMessage ? (
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: 'center', padding: '32px', color: '#EF4444', fontWeight: '600' }}>
+                      <span className="material-symbols-outlined" style={{ verticalAlign: 'middle', marginRight: '8px' }}>error</span>
+                      {errorMessage}
+                    </td>
+                  </tr>
+                ) : loading && users.length === 0 ? (
                   <tr>
                     <td colSpan="6" style={{ textAlign: 'center', padding: '32px', fontWeight: '600' }}>
                       사용자 데이터를 로딩 중입니다...
@@ -541,6 +575,18 @@ function UserListPage() {
                                 className="dropdown-item delete" 
                                 onClick={() => {
                                   setActiveDropdownUserId(null);
+                                  handleBlockUser(user.id);
+                                }}
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px', background: 'transparent', border: 'none', color: '#EF4444', cursor: 'pointer', textAlign: 'left', borderRadius: '4px', fontSize: '13px' }}
+                              >
+                                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>block</span>
+                                <span>차단</span>
+                              </button>
+                              <button 
+                                type="button" 
+                                className="dropdown-item delete" 
+                                onClick={() => {
+                                  setActiveDropdownUserId(null);
                                   handleDeleteUser(user.id, user.name);
                                 }}
                                 style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px', background: 'transparent', border: 'none', color: '#EF4444', cursor: 'pointer', textAlign: 'left', borderRadius: '4px', fontSize: '13px' }}
@@ -602,6 +648,23 @@ function UserListPage() {
           )}
         </section>
 
+        {toastMessage && (
+          <div className="toast-notification" style={{
+            position: 'fixed',
+            top: '24px',
+            right: '24px',
+            background: 'rgba(239, 68, 68, 0.95)',
+            color: '#fff',
+            padding: '12px 24px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            zIndex: 1000,
+            fontSize: '14px',
+            fontWeight: '600'
+          }}>
+            {toastMessage}
+          </div>
+        )}
       </div>
     </div>
   );

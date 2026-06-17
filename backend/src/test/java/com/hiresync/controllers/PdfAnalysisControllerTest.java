@@ -193,7 +193,7 @@ class PdfAnalysisControllerTest {
         mockMvc.perform(multipart("/api/v1/sources/pdf").file(errorFile))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value("error"))
-                .andExpect(jsonPath("$.message").value("Error reading PDF file"));
+                .andExpect(jsonPath("$.message").value("Error reading PDF file: File read error"));
     }
 
     @Test
@@ -235,7 +235,7 @@ class PdfAnalysisControllerTest {
         when(jobPostingService.save(any(JobPosting.class))).thenReturn(savedJob);
 
         mockMvc.perform(multipart("/api/v1/sources/pdf").file(mockPdf))
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.companyName").value("Unknown Company"))
                 .andExpect(jsonPath("$.data.location").value("Unknown"))
                 .andExpect(jsonPath("$.data.requirements").value("N/A"))
@@ -252,7 +252,7 @@ class PdfAnalysisControllerTest {
         when(jobPostingService.save(any(JobPosting.class))).thenReturn(savedJob);
 
         mockMvc.perform(multipart("/api/v1/sources/pdf").file(mockPdf))
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.companyName").value(expectedCompanyName));
     }
@@ -271,12 +271,13 @@ class PdfAnalysisControllerTest {
 
     @Test
     void shouldHandleUnexpectedError() throws Exception {
-        when(pdfAnalysisService.analyzePdf(any(), any())).thenThrow(new RuntimeException("AI Service Down"));
+        when(pdfAnalysisService.extractTextFromPdf(any())).thenReturn("dummy raw text");
+        when(pdfAnalysisService.analyzeText(any())).thenThrow(new RuntimeException("AI Service Down"));
 
         mockMvc.perform(multipart("/api/v1/sources/pdf")
                 .file(mockPdf))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value("error"))
-                .andExpect(jsonPath("$.message").value("Unexpected error during PDF analysis"));
+                .andExpect(jsonPath("$.message").value("Unexpected error during PDF analysis: AI Service Down"));
     }
 }

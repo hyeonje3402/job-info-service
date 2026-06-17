@@ -71,7 +71,7 @@ const Sidebar = () => {
               <span className="material-symbols-outlined menu-link-icon">
                 settings
               </span>
-              <span>System Settings</span>
+              <span>Settings</span>
             </NavLink>
           </li>
           <li>
@@ -205,7 +205,7 @@ const Sidebar = () => {
                 <span className="material-symbols-outlined menu-link-icon">
                   settings
                 </span>
-                <span>System Settings</span>
+                <span>Settings</span>
               </NavLink>
             </li>
             <li>

@@ -28,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
 class OpenAiExtractionEngineTest {
 
     @Mock
@@ -70,7 +71,7 @@ class OpenAiExtractionEngineTest {
         String rawText = "This is a job posting for Java Developer at Test Corp.";
         String aiResponseJson = "{\"jobPostings\": [{\"title\": \"Java Developer\", \"company\": \"Test Corp\"}]}";
 
-        when(chatClient.prompt()).thenReturn(requestSpec);
+        when(chatClient.prompt(any(org.springframework.ai.chat.prompt.Prompt.class))).thenReturn(requestSpec);
         when(requestSpec.user(any(Consumer.class))).thenReturn(requestSpec);
         when(requestSpec.call()).thenReturn(callResponseSpec);
         when(callResponseSpec.chatResponse()).thenReturn(chatResponse);
@@ -102,14 +103,14 @@ class OpenAiExtractionEngineTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("Java Developer", result.get(0).get("title"));
-        verify(chatClient).prompt();
+        verify(chatClient).prompt(any(org.springframework.ai.chat.prompt.Prompt.class));
     }
 
     @Test
     void shouldReturnEmptyListWhenJsonIsInvalid() throws JsonProcessingException {
         // Given
         String aiResponseJson = "invalid json";
-        when(chatClient.prompt()).thenReturn(requestSpec);
+        when(chatClient.prompt(any(org.springframework.ai.chat.prompt.Prompt.class))).thenReturn(requestSpec);
         when(requestSpec.user(any(Consumer.class))).thenReturn(requestSpec);
         when(requestSpec.call()).thenReturn(callResponseSpec);
         when(callResponseSpec.chatResponse()).thenReturn(chatResponse);
@@ -129,7 +130,7 @@ class OpenAiExtractionEngineTest {
     void shouldReturnEmptyListWhenJobPostingsFieldIsMissing() throws JsonProcessingException {
         // Given
         String aiResponseJson = "{\"other\": []}";
-        when(chatClient.prompt()).thenReturn(requestSpec);
+        when(chatClient.prompt(any(org.springframework.ai.chat.prompt.Prompt.class))).thenReturn(requestSpec);
         when(requestSpec.user(any(Consumer.class))).thenReturn(requestSpec);
         when(requestSpec.call()).thenReturn(callResponseSpec);
         when(callResponseSpec.chatResponse()).thenReturn(chatResponse);

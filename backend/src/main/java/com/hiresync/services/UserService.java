@@ -16,6 +16,9 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public User registerUser(User user) {
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setStatus("ACTIVE");
         if (user.getRole() == null) {
@@ -54,6 +57,12 @@ public class UserService {
     public User updateUser(Long id, User userDetails) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + id));
+        
+        if (!user.getEmail().equals(userDetails.getEmail())) {
+            if (userRepository.findByEmail(userDetails.getEmail()).isPresent()) {
+                throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            }
+        }
         
         user.setName(userDetails.getName());
         user.setEmail(userDetails.getEmail());

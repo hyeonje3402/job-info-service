@@ -191,7 +191,7 @@ public class JobPostingController {
     }
 
     @PostMapping("/jobs")
-    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ADMIN')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<JobResponse>> createJob(@jakarta.validation.Valid @RequestBody com.hiresync.models.JobPostingRequest request) {
         JobPosting posting = new JobPosting();
         posting.setCompanyName(request.getCompanyName());
@@ -215,7 +215,7 @@ public class JobPostingController {
     }
 
     @PutMapping("/jobs/{id}")
-    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ADMIN')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<JobResponse>> updateJob(@PathVariable("id") Long id, @jakarta.validation.Valid @RequestBody com.hiresync.models.JobPostingRequest request) {
         return jobPostingService.update(id, request)
                 .map(updated -> ResponseEntity.ok(ApiResponse.success(JobResponse.fromEntity(updated))))
@@ -223,7 +223,7 @@ public class JobPostingController {
     }
 
     @DeleteMapping("/jobs/{id}")
-    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ADMIN')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteJob(@PathVariable("id") Long id) {
         jobPostingService.deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(null));
@@ -252,7 +252,7 @@ public class JobPostingController {
     }
 
     @PatchMapping("/jobs/{id}/status")
-    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ADMIN')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<JobResponse>> updateJobStatus(
             @PathVariable("id") Long id,
             @RequestBody Map<String, String> request) {

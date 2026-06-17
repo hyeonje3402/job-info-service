@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 test.describe('인증 및 로그인 시나리오 테스트', () => {
     test.beforeEach(async ({ page }) => {
+        // 브라우저 alert 자동 수락 핸들러 등록
+        page.on('dialog', async dialog => {
+            await dialog.accept();
+        });
         // 실제 로그인 페이지 주소로 이동합니다.
         await page.goto('http://localhost:3000/login');
     });

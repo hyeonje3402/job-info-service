@@ -103,4 +103,68 @@ class UserServiceTest {
         assertFalse(foundUser.isPresent());
         verify(userRepository, times(1)).findByEmail(email);
     }
+
+    @Test
+    void registerUser_WhenEmailAlreadyExists_ShouldThrowIllegalArgumentException() {
+        // Given
+        User user = new User();
+        user.setEmail("duplicate@example.com");
+        user.setPassword("password123");
+
+        when(userRepository.findByEmail("duplicate@example.com")).thenReturn(Optional.of(new User()));
+
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.registerUser(user);
+        });
+        assertEquals("이미 사용 중인 이메일입니다.", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void updateUser_WhenEmailAlreadyExistsForAnotherUser_ShouldThrowIllegalArgumentException() {
+        // Given
+        Long userId = 1L;
+        User existingUser = new User();
+        existingUser.setId(userId);
+        existingUser.setEmail("original@example.com");
+
+        User userDetails = new User();
+        userDetails.setEmail("taken@example.com"); // Changing to a taken email
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByEmail("taken@example.com")).thenReturn(Optional.of(new User()));
+
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.updateUser(userId, userDetails);
+        });
+        assertEquals("이미 사용 중인 이메일입니다.", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void updateUser_WhenEmailIsSame_ShouldNotThrowException() {
+        // Given
+        Long userId = 1L;
+        User existingUser = new User();
+        existingUser.setId(userId);
+        existingUser.setEmail("same@example.com");
+        existingUser.setName("Old Name");
+
+        User userDetails = new User();
+        userDetails.setEmail("same@example.com"); // Keeping the same email
+        userDetails.setName("New Name");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        User updatedUser = userService.updateUser(userId, userDetails);
+
+        // Then
+        assertEquals("New Name", updatedUser.getName());
+        assertEquals("same@example.com", updatedUser.getEmail());
+        verify(userRepository, times(1)).save(existingUser);
+    }
 }

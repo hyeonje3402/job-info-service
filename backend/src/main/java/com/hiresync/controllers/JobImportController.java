@@ -20,7 +20,7 @@ public class JobImportController {
     }
 
     @PostMapping("/jobs/import")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<?>> importJob(@RequestBody Map<String, String> request) {
         if (request == null || !request.containsKey("url") || request.get("url") == null || request.get("url").isBlank()) {
             return ResponseEntity.badRequest().body(new ApiResponse<>("error", "URL은 필수 입력값입니다."));

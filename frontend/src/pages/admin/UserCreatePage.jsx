@@ -7,7 +7,7 @@ const UserCreatePage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('USER');
+  const [role, setRole] = useState('GENERAL');
   const [phone, setPhone] = useState('');
   const [profileImage, setProfileImage] = useState('');
   const [error, setError] = useState('');
@@ -104,7 +104,7 @@ const UserCreatePage = () => {
             onChange={(e) => setRole(e.target.value)} 
             className="form-select"
           >
-            <option value="USER">일반 사용자 (USER)</option>
+            <option value="GENERAL">일반 사용자 (GENERAL)</option>
             <option value="ADMIN">관리자 (ADMIN)</option>
           </select>
         </div>

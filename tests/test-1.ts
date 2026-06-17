@@ -4,7 +4,7 @@ test.describe('Test Collection 1: 인증 및 세션 관리 시나리오', () => 
 
     // 각 테스트가 시작되기 전에 무조건 로그인 페이지로 먼저 이동합니다.
     test.beforeEach(async ({ page }) => {
-        await page.goto('http://localhost:3000/login');
+        await page.goto('http://localhost:3000/login', { waitUntil: 'domcontentloaded' });
     });
 
     test('시나리오 1-1: 올바른 계정 정보로 로그인 성공 시 대시보드로 이동해야 한다', async ({ page }) => {
@@ -21,6 +21,7 @@ test.describe('Test Collection 1: 인증 및 세션 관리 시나리오', () => 
     });
 
     test('시나리오 1-2: 잘못된 계정 정보 입력 시 에러 메시지가 나타나야 한다', async ({ page }) => {
+        await page.waitForLoadState('networkidle');
         await page.fill('#email', 'admin@example.com');
         await page.fill('#password', 'wrong_password');
         await page.click('button[type="submit"]');

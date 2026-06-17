@@ -34,6 +34,15 @@ public class DataInitializer {
                 userService.registerUser(user);
             }
 
+            if (userService.findByEmail("jihoon.kim@example.com").isEmpty()) {
+                User user = new User();
+                user.setEmail("jihoon.kim@example.com");
+                user.setPassword("1234");
+                user.setName("김지훈");
+                user.setRole("GENERAL");
+                userService.registerUser(user);
+            }
+
             if (jobPostingRepository.count() == 0) {
                 // The record for jobs.spec.ts integration test
                 JobPosting target = new JobPosting();
