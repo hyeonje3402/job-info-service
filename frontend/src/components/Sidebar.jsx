@@ -23,9 +23,9 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="sidebar-root">
+    <>
       {/* 1. 데스크톱 사이드바 (lg 이상 활성화) */}
-      <aside className="desktop-sidebar">
+      <aside className="sidebar-root desktop-sidebar">
 
 
         {/* 메뉴 리스트 */}
@@ -251,7 +251,7 @@ const Sidebar = () => {
           </ul>
         </nav>
       </div>
-    </div>
+    </>
   );
 };
 

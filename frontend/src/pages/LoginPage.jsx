@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import './LoginPage.css';
 
 function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('error') === 'unauthorized') {
+      setError('인증이 만료되었거나 권한이 없습니다. 다시 로그인해 주세요.');
+    }
+  }, [location]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

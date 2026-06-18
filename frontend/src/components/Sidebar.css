@@ -1,6 +1,6 @@
 /* 공용 네비게이션 (Sidebar & Mobile Bottom Bar) 전용 Vanilla CSS (DESIGN.md 가이드 준수) */
 
-.sidebar-root {
+.sidebar-root, .mobile-bottom-nav, .mobile-top-header, .mobile-menu-overlay {
   --primary-color: #1A5AD7;
   --secondary-color: #64748B;
   --neutral-bg: #F8FAFC;
@@ -17,7 +17,7 @@
   box-sizing: border-box;
 }
 
-.sidebar-root * {
+.sidebar-root *, .mobile-bottom-nav *, .mobile-top-header *, .mobile-menu-overlay * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -433,3 +433,11 @@
     padding-bottom: 24px !important;
   }
 }
+
+@media (min-width: 768px) {
+  .mobile-top-header,
+  .mobile-menu-overlay {
+    display: none !important;
+  }
+}
+

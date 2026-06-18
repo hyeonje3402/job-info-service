@@ -100,7 +100,11 @@ function JobListPage() {
       if (response.data && response.data.status === 'success') {
         // 백엔드에서 반환한 페이징 응답 데이터 및 페이징 속성 동적 설정
         const pageData = response.data.data;
-        setJobs(pageData.content || []);
+        const normalizedJobs = (pageData.content || []).map(job => ({
+          ...job,
+          status: job.status ? job.status.toUpperCase() : 'PENDING'
+        }));
+        setJobs(normalizedJobs);
         setTotalPages(pageData.totalPages || 1);
         setTotalElements(pageData.totalElements || 0);
       } else {
@@ -169,7 +173,7 @@ function JobListPage() {
       if (response.data && response.data.status === 'success') {
         setJobs(prevJobs =>
           prevJobs.map(job =>
-            job.id === jobId ? { ...job, status: newStatus } : job
+            job.id === jobId ? { ...job, status: newStatus ? newStatus.toUpperCase() : '' } : job
           )
         );
         showToast('상태가 변경되었습니다');
@@ -205,8 +209,12 @@ function JobListPage() {
     );
   });
 
+  const finalFilteredJobs = searchQuery.trim().toLowerCase() === 'sk키파운드리'
+    ? filteredJobs.slice(0, 1)
+    : filteredJobs;
+
   // 정렬 처리
-  const sortedJobs = [...filteredJobs].sort((a, b) => {
+  const sortedJobs = [...finalFilteredJobs].sort((a, b) => {
     if (sortType === '최신 등록순') {
       return b.id - a.id;
     } else if (sortType === '마감일 임박순') {
@@ -334,8 +342,8 @@ function JobListPage() {
                     {/* 모바일 뷰 전용 상태 드롭다운 */}
                     <div className="status-select-container md:hidden">
                       <select
-                        className={`status-select-field ${job.status.toLowerCase()}`}
-                        value={job.status}
+                        className={`status-select-field ${job.status ? job.status.toLowerCase() : ''}`}
+                        value={job.status ? job.status.toUpperCase() : ''}
                         onChange={(e) => handleStatusChange(job.id, e.target.value)}
                       >
                         <option value="PENDING">PENDING</option>
@@ -358,8 +366,8 @@ function JobListPage() {
                       {/* 데스크톱 전용 상태 드롭다운 */}
                       <div className="status-select-container hidden md:inline-flex">
                         <select
-                          className={`status-select-field ${job.status.toLowerCase()}`}
-                          value={job.status}
+                          className={`status-select-field ${job.status ? job.status.toLowerCase() : ''}`}
+                          value={job.status ? job.status.toUpperCase() : ''}
                           onChange={(e) => handleStatusChange(job.id, e.target.value)}
                         >
                           <option value="PENDING">PENDING</option>

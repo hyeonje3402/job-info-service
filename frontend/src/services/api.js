@@ -31,9 +31,8 @@ api.interceptors.response.use(
       const isLoginRequest = error.config && error.config.url && error.config.url.includes('/api/v1/auth/login');
       if (!isLoginRequest) {
         localStorage.removeItem('authToken');
-        // 사용자가 알아볼 수 있도록 알림을 띄우고 리다이렉트
-        alert('인증이 만료되었거나 권한이 없습니다. 다시 로그인해 주세요.');
-        window.location.href = '/login';
+        // alert를 제거하고 쿼리 매개변수와 함께 로그인 화면으로 리다이렉트
+        window.location.href = '/login?error=unauthorized';
       }
     }
     return Promise.reject(error);
