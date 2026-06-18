@@ -25,11 +25,12 @@ public class SaraminCrawlerService {
         options.addArguments("--remote-allow-origins=*");
         options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 
-        WebDriver driver = new ChromeDriver(options);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriver driver = null;
         StringBuilder resultText = new StringBuilder();
 
         try {
+            driver = new ChromeDriver(options);
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
             System.out.println("URL 접속 중: " + url);
             driver.get(url);
 
@@ -52,7 +53,9 @@ public class SaraminCrawlerService {
             resultText.append("크롤링 중 오류 발생: ").append(e.getMessage());
             e.printStackTrace();
         } finally {
-            driver.quit();
+            if (driver != null) {
+                driver.quit();
+            }
         }
         
         return resultText.toString();

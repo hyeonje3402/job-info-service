@@ -40,15 +40,30 @@ HireSync는 AI(OpenAI/LLM)를 활용하여 다양한 소스(PDF, 웹 페이지)�
 - **Swagger UI**: http://localhost:8080/swagger-ui/index.html
 
 ### Frontend 실행
-1. `frontend` 디렉토리로 이동:
+1. `frontend` 디렉토리로 이동하여 필요한 패키지를 설치합니다.
    ```bash
    cd frontend
    npm install
    ```
-2. 개발 서버 실행:
+2. 환경 변수 설정 (`frontend/.env` 파일 생성 또는 확인):
+   - 백엔드 API 주소를 설정합니다. (기본 포트: 8080)
+   ```env
+   REACT_APP_BACKEND=http://localhost:8080
+   ```
+3. 개발 서버를 실행합니다:
    ```bash
    npm start
    ```
+- **프론트엔드 접속 주소**: http://localhost:3000
+
+## 👥 테스트용 계정 정보
+
+권한 및 역할에 따라 접근할 수 있는 페이지와 기능이 제한됩니다.
+
+| 역할 (Role) | 이메일 (ID) | 비밀번호 | 리다이렉션 경로 및 제공 기능 |
+| :--- | :--- | :--- | :--- |
+| **관리자 (ADMIN)** | `admin@example.com` | `1234` | **관리자 대시보드 (`/admin/dashboard`)** 로 즉시 이동<br>· 전체 메뉴 활성화 (Dashboard, Job Listings, User Management, Settings) |
+| **일반 사용자 (GENERAL)** | `tester@example.com` | `1234!` | **채용공고 목록 (`/`)** 으로 즉시 이동<br>· 일반 사용자용 메뉴 활성화 (Job Listings만 노출, 관리자 페이지 접근 자동 차단) |
 
 ## 🔍 프로젝트 구조
 - `backend/`: Spring Boot 프로젝트
@@ -61,4 +76,17 @@ HireSync는 AI(OpenAI/LLM)를 활용하여 다양한 소스(PDF, 웹 페이지)�
 ```bash
 # 서버 실행 중인 상태에서
 newman run test-12.json
+```
+
+### 브라우저 시나리오 E2E 테스트 (Playwright)
+```bash
+# 전체 시나리오 테스트 실행
+npx playwright test
+
+# 특정 시나리오 테스트 실행 (예: 일반 사용자 권한 검사)
+npx playwright test tests/test-13.ts
+npx playwright test tests/test-14.ts
+
+# 테스트 결과 리포트 확인
+npx playwright show-report
 ```

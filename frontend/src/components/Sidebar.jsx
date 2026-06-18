@@ -6,6 +6,8 @@ import './Sidebar.css';
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const userRole = localStorage.getItem('userRole') || 'GENERAL';
+  const isAdmin = userRole === 'ADMIN';
 
   const handleLogout = async (e) => {
     e.preventDefault();
@@ -15,6 +17,7 @@ const Sidebar = () => {
       console.error('로그아웃 에러:', err);
     } finally {
       localStorage.removeItem('authToken');
+      localStorage.removeItem('userRole');
       navigate('/login');
     }
   };
@@ -27,18 +30,20 @@ const Sidebar = () => {
 
         {/* 메뉴 리스트 */}
         <ul className="sidebar-menu-list">
-          <li>
-            <NavLink 
-              to="/admin" 
-              className={({ isActive }) => isActive ? "menu-link active" : "menu-link"}
-              end
-            >
-              <span className="material-symbols-outlined menu-link-icon" style={{ fontVariationSettings: "'FILL' 1" }}>
-                dashboard
-              </span>
-              <span>Dashboard</span>
-            </NavLink>
-          </li>
+          {isAdmin && (
+            <li>
+              <NavLink 
+                to="/admin" 
+                className={({ isActive }) => isActive ? "menu-link active" : "menu-link"}
+                end
+              >
+                <span className="material-symbols-outlined menu-link-icon" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  dashboard
+                </span>
+                <span>Dashboard</span>
+              </NavLink>
+            </li>
+          )}
           <li>
             <NavLink 
               to="/" 
@@ -51,28 +56,32 @@ const Sidebar = () => {
               <span>Job Listings</span>
             </NavLink>
           </li>
-          <li>
-            <NavLink 
-              to="/users-management" 
-              className={({ isActive }) => isActive ? "menu-link active" : "menu-link"}
-            >
-              <span className="material-symbols-outlined menu-link-icon">
-                group
-              </span>
-              <span>User Management</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink 
-              to="/settings" 
-              className={({ isActive }) => isActive ? "menu-link active" : "menu-link"}
-            >
-              <span className="material-symbols-outlined menu-link-icon">
-                settings
-              </span>
-              <span>Settings</span>
-            </NavLink>
-          </li>
+          {isAdmin && (
+            <li>
+              <NavLink 
+                to="/users-management" 
+                className={({ isActive }) => isActive ? "menu-link active" : "menu-link"}
+              >
+                <span className="material-symbols-outlined menu-link-icon">
+                  group
+                </span>
+                <span>User Management</span>
+              </NavLink>
+            </li>
+          )}
+          {isAdmin && (
+            <li>
+              <NavLink 
+                to="/settings" 
+                className={({ isActive }) => isActive ? "menu-link active" : "menu-link"}
+              >
+                <span className="material-symbols-outlined menu-link-icon">
+                  settings
+                </span>
+                <span>Settings</span>
+              </NavLink>
+            </li>
+          )}
           <li>
             <button 
               onClick={handleLogout}
@@ -108,26 +117,30 @@ const Sidebar = () => {
           <span className="mobile-nav-label">Jobs</span>
         </NavLink>
         
-        <NavLink 
-          to="/admin" 
-          className={({ isActive }) => isActive ? "mobile-nav-item active-pill" : "mobile-nav-item"}
-          end
-        >
-          <span className="material-symbols-outlined mobile-nav-icon" style={{ fontVariationSettings: "'FILL' 1" }}>
-            dashboard
-          </span>
-          <span className="mobile-nav-label">Admin</span>
-        </NavLink>
+        {isAdmin && (
+          <NavLink 
+            to="/admin" 
+            className={({ isActive }) => isActive ? "mobile-nav-item active-pill" : "mobile-nav-item"}
+            end
+          >
+            <span className="material-symbols-outlined mobile-nav-icon" style={{ fontVariationSettings: "'FILL' 1" }}>
+              dashboard
+            </span>
+            <span className="mobile-nav-label">Admin</span>
+          </NavLink>
+        )}
 
-        <NavLink 
-          to="/users-management" 
-          className={({ isActive }) => isActive ? "mobile-nav-item active" : "mobile-nav-item"}
-        >
-          <span className="material-symbols-outlined mobile-nav-icon">
-            group
-          </span>
-          <span className="mobile-nav-label">Users</span>
-        </NavLink>
+        {isAdmin && (
+          <NavLink 
+            to="/users-management" 
+            className={({ isActive }) => isActive ? "mobile-nav-item active" : "mobile-nav-item"}
+          >
+            <span className="material-symbols-outlined mobile-nav-icon">
+              group
+            </span>
+            <span className="mobile-nav-label">Users</span>
+          </NavLink>
+        )}
       </nav>
 
       {/* 3. 모바일 상단 헤더 & 햄버거 메뉴 (767px 이하 활성화) */}
@@ -157,19 +170,21 @@ const Sidebar = () => {
             <button className="drawer-close-btn" onClick={() => setIsOpen(false)}>&times;</button>
           </div>
           <ul className="drawer-menu-list">
-            <li>
-              <NavLink 
-                to="/admin" 
-                className={({ isActive }) => isActive ? "drawer-link active" : "drawer-link"}
-                onClick={() => setIsOpen(false)}
-                end
-              >
-                <span className="material-symbols-outlined menu-link-icon" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  dashboard
-                </span>
-                <span>Dashboard</span>
-              </NavLink>
-            </li>
+            {isAdmin && (
+              <li>
+                <NavLink 
+                  to="/admin" 
+                  className={({ isActive }) => isActive ? "drawer-link active" : "drawer-link"}
+                  onClick={() => setIsOpen(false)}
+                  end
+                >
+                  <span className="material-symbols-outlined menu-link-icon" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    dashboard
+                  </span>
+                  <span>Dashboard</span>
+                </NavLink>
+              </li>
+            )}
             <li>
               <NavLink 
                 to="/" 
@@ -183,30 +198,34 @@ const Sidebar = () => {
                 <span>Job Listings</span>
               </NavLink>
             </li>
-            <li>
-              <NavLink 
-                to="/users-management" 
-                className={({ isActive }) => isActive ? "drawer-link active" : "drawer-link"}
-                onClick={() => setIsOpen(false)}
-              >
-                <span className="material-symbols-outlined menu-link-icon">
-                  group
-                </span>
-                <span>User Management</span>
-              </NavLink>
-            </li>
-            <li>
-              <NavLink 
-                to="/settings" 
-                className={({ isActive }) => isActive ? "drawer-link active" : "drawer-link"}
-                onClick={() => setIsOpen(false)}
-              >
-                <span className="material-symbols-outlined menu-link-icon">
-                  settings
-                </span>
-                <span>Settings</span>
-              </NavLink>
-            </li>
+            {isAdmin && (
+              <li>
+                <NavLink 
+                  to="/users-management" 
+                  className={({ isActive }) => isActive ? "drawer-link active" : "drawer-link"}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <span className="material-symbols-outlined menu-link-icon">
+                    group
+                  </span>
+                  <span>User Management</span>
+                </NavLink>
+              </li>
+            )}
+            {isAdmin && (
+              <li>
+                <NavLink 
+                  to="/settings" 
+                  className={({ isActive }) => isActive ? "drawer-link active" : "drawer-link"}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <span className="material-symbols-outlined menu-link-icon">
+                    settings
+                  </span>
+                  <span>Settings</span>
+                </NavLink>
+              </li>
+            )}
             <li>
               <button 
                 onClick={(e) => {

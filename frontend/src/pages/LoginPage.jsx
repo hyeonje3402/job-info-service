@@ -22,13 +22,20 @@ function LoginPage() {
       });
 
       if (response.data && response.data.status === 'success') {
-        const token = response.data.data; // JWT 토큰 값 추출
+        const userData = response.data.data;
+        const authorities = userData.authorities || [];
+        const isAdmin = authorities.some(auth => auth.authority === 'ADMIN' || auth.authority === 'ROLE_ADMIN');
         
-        // 토큰 로컬 스토리지에 보관
-        localStorage.setItem('authToken', token);
+        // 토큰 및 역할 정보를 로컬 스토리지에 보관
+        localStorage.setItem('authToken', userData.email || 'user');
+        localStorage.setItem('userRole', isAdmin ? 'ADMIN' : 'GENERAL');
         
         alert('로그인에 성공했습니다.');
-        navigate('/admin/dashboard'); // 관리자 대시보드로 이동
+        if (isAdmin) {
+          navigate('/admin/dashboard'); // 관리자 대시보드로 이동
+        } else {
+          navigate('/'); // 일반 사용자는 메인 채용공고 목록으로 이동
+        }
       } else {
         setError('로그인 처리에 실패했습니다. 응답 형식을 확인하세요.');
       }
