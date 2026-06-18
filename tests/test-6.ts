@@ -25,7 +25,7 @@ test.describe('Test Collection 6: 폼 유효성 검사 및 모바일 반응형 (
 
     test('시나리오 6-2: [반응형 레이아웃 저격] 모바일 화면 크기(iPhone 사이즈)로 줄였을 때 가로 스크롤이 생기거나 화면이 깨지지 않아야 한다', async ({ page }) => {
         await page.setViewportSize({ width: 375, height: 812 });
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(1000);
 
         const isOverflowing = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
         expect(isOverflowing).toBe(false);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import './Sidebar.css';
 
 const Sidebar = () => {
@@ -10,8 +10,7 @@ const Sidebar = () => {
   const handleLogout = async (e) => {
     e.preventDefault();
     try {
-      const backendUrl = process.env.REACT_APP_BACKEND || '';
-      await axios.post(`${backendUrl}/api/v1/auth/logout`);
+      await api.post('/api/v1/auth/logout');
     } catch (err) {
       console.error('로그아웃 에러:', err);
     } finally {

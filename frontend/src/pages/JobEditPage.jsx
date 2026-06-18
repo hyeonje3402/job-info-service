@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import './JobEditPage.css';
 
 // Stitch 데모 구동용 폴백(Fallback) 목업 데이터 정의 (JobListPage.jsx 데이터와 연동)
@@ -91,13 +91,9 @@ function JobEditPage() {
     const fetchJobDetails = async () => {
       setLoading(true);
       setError('');
-      const backendUrl = process.env.REACT_APP_BACKEND || '';
 
       try {
-        // AGENTS.md 규칙: 세션 JSESSIONID 연동을 보장하기 위해 withCredentials 탑재 필수
-        const response = await axios.get(`${backendUrl}/api/v1/jobs/${jobId}`, {
-          withCredentials: true
-        });
+        const response = await api.get(`/api/v1/jobs/${jobId}`);
 
         if (response.data && response.data.status === 'success') {
           const job = response.data.data;
@@ -195,12 +191,10 @@ function JobEditPage() {
     };
 
     try {
-      // AGENTS.md 규칙: 세션 JSESSIONID 연동을 보장하기 위해 withCredentials 탑재 필수
-      const response = await axios.put(`${backendUrl}/api/v1/jobs/${jobId}`, updatedPayload, {
+      const response = await api.put(`/api/v1/jobs/${jobId}`, updatedPayload, {
         headers: {
           'Content-Type': 'application/json'
-        },
-        withCredentials: true
+        }
       });
 
       if (response.data && response.data.status === 'success') {

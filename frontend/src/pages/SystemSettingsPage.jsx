@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import './SystemSettingsPage.css';
 
 const DEFAULT_SETTINGS = {
@@ -65,9 +65,8 @@ function SystemSettingsPage() {
 
     setIsResetting(true);
     try {
-      const backendUrl = process.env.REACT_APP_BACKEND || '';
       // 1. 모든 공고 목록 가져오기 (최대 50개)
-      const response = await axios.get(`${backendUrl}/api/v1/jobs?size=50`);
+      const response = await api.get('/api/v1/jobs?size=50');
       
       if (response.data && response.data.status === 'success') {
         const jobs = response.data.data.content || [];
@@ -82,7 +81,7 @@ function SystemSettingsPage() {
 
         // 2. 순차적으로 삭제 진행
         for (const job of targetsToDelete) {
-          await axios.delete(`${backendUrl}/api/v1/jobs/${job.id}`);
+          await api.delete(`/api/v1/jobs/${job.id}`);
         }
         
         triggerToast(`데이터베이스 리셋 완료 (${targetsToDelete.length}개 공고 삭제됨)`);

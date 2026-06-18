@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import JobAddPage from './JobAddPage';
 import './JobListPage.css';
 
@@ -89,9 +89,8 @@ function JobListPage() {
   const fetchJobs = React.useCallback(async () => {
     setLoading(true);
     try {
-      const backendUrl = process.env.REACT_APP_BACKEND || '';
       // API Contracts 명세: GET /api/v1/jobs 호출
-      const response = await axios.get(`${backendUrl}/api/v1/jobs`, {
+      const response = await api.get('/api/v1/jobs', {
         params: {
           page: currentPage - 1, // Spring Data Page는 0-index
           size: pageSize
@@ -162,11 +161,9 @@ function JobListPage() {
   // 상태 변경 PATCH API 호출
   const handleStatusChange = async (jobId, newStatus) => {
     try {
-      const backendUrl = process.env.REACT_APP_BACKEND || '';
-      const response = await axios.patch(
-        `${backendUrl}/api/v1/jobs/${jobId}/status`,
-        { status: newStatus },
-        { withCredentials: true }
+      const response = await api.patch(
+        `/api/v1/jobs/${jobId}/status`,
+        { status: newStatus }
       );
 
       if (response.data && response.data.status === 'success') {

@@ -621,3 +621,53 @@
   color: var(--primary-color);
   transform: translateX(4px);
 }
+
+/* 모바일 반응형 스타일 대응 (최대 너비 767px 이하) */
+@media (max-width: 767px) {
+  /* 대시보드 래퍼 패딩 축소 */
+  .dashboard-wrapper {
+    padding: 12px;
+    gap: 16px;
+  }
+  
+  /* 탑바 마진 축소 (래퍼 패딩 상쇄) */
+  .dashboard-top-appbar {
+    margin: -12px -12px 12px -12px;
+    padding: 12px 16px;
+  }
+
+  .bento-chart-card {
+    padding: 16px;
+    min-height: 280px;
+    overflow: hidden; /* 가로 스크롤 방지 */
+  }
+
+  .chart-visual-wrapper {
+    padding: 24px 8px 32px 36px; /* 모바일에서 Y축 공간을 36px로 줄임 */
+    overflow: hidden; /* 차트 바깥으로 나가는 요소 숨김 */
+  }
+
+  .chart-y-axis-labels {
+    left: 8px;
+    font-size: 10px;
+  }
+
+  .chart-grid-lines {
+    left: 36px;
+    right: 8px;
+  }
+
+  .chart-x-axis-labels {
+    left: 36px;
+    right: 8px;
+    font-size: 9px;
+  }
+
+  .chart-x-axis-labels span {
+    max-width: 32px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
