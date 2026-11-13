@@ -4,6 +4,7 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +55,7 @@ class UrlScrapingServiceTest {
         when(connection.get()).thenReturn(document);
         when(document.body()).thenReturn(body);
         when(body.html()).thenReturn(html);
+        when(document.select(anyString())).thenReturn(new Elements());
         
         mockedJsoup.when(() -> Jsoup.clean(anyString(), any())).thenReturn(cleanedHtml);
         mockedJsoup.when(() -> Jsoup.parse(anyString())).thenReturn(parsedDoc);
@@ -106,6 +108,7 @@ class UrlScrapingServiceTest {
         when(connection.get()).thenReturn(document);
         when(document.body()).thenReturn(body);
         when(body.html()).thenReturn("");
+        when(document.select(anyString())).thenReturn(new Elements());
 
         mockedJsoup.when(() -> Jsoup.clean(anyString(), any())).thenReturn("");
         mockedJsoup.when(() -> Jsoup.parse(anyString())).thenReturn(parsedDoc);

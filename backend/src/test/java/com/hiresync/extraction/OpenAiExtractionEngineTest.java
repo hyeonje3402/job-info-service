@@ -1,150 +1,98 @@
 package com.hiresync.extraction;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.model.Generation;
-import org.springframework.ai.chat.metadata.ChatResponseMetadata;
-import org.springframework.ai.chat.metadata.Usage;
-import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-@org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
 class OpenAiExtractionEngineTest {
 
     @Mock
-    private ChatClient.Builder chatClientBuilder;
+    private HttpClient httpClient;
 
     @Mock
-    private ChatClient chatClient;
+    private HttpResponse<String> response;
 
-    @Mock
-    private ChatClient.ChatClientRequestSpec requestSpec;
-
-    @Mock
-    private ChatClient.CallResponseSpec callResponseSpec;
-
-    @Mock
-    private ChatResponse chatResponse;
-
-    @Mock
-    private Generation generation;
-
-    @Mock
     private ObjectMapper objectMapper;
-
-    @InjectMocks
     private OpenAiExtractionEngine extractionEngine;
-
     private Resource extractionPrompt;
 
     @BeforeEach
     void setUp() {
-        extractionPrompt = new ByteArrayResource("test prompt".getBytes());
+        objectMapper = new ObjectMapper();
+        extractionPrompt = new ByteArrayResource("test prompt".getBytes(StandardCharsets.UTF_8));
+        extractionEngine = new OpenAiExtractionEngine(objectMapper, httpClient);
         ReflectionTestUtils.setField(extractionEngine, "extractionPrompt", extractionPrompt);
-        
-        when(chatClientBuilder.build()).thenReturn(chatClient);
+        ReflectionTestUtils.setField(extractionEngine, "apiKey", "test-key");
+        ReflectionTestUtils.setField(extractionEngine, "baseUrl", "http://localhost");
+        ReflectionTestUtils.setField(extractionEngine, "modelName", "test-model");
     }
 
     @Test
-    void shouldExtractJobPostingsSuccessfully() throws JsonProcessingException {
-        // Given
+    void shouldExtractJobPostingsSuccessfully() throws Exception {
         String rawText = "This is a job posting for Java Developer at Test Corp.";
-        String aiResponseJson = "{\"jobPostings\": [{\"title\": \"Java Developer\", \"company\": \"Test Corp\"}]}";
+        String aiResponseJson = "{\"jobPostings\":[{\"position\":\"Java Developer\",\"companyName\":\"Test Corp\"}]}";
+        givenAiResponse(aiResponseJson);
 
-        when(chatClient.prompt(any(org.springframework.ai.chat.prompt.Prompt.class))).thenReturn(requestSpec);
-        when(requestSpec.user(any(Consumer.class))).thenReturn(requestSpec);
-        when(requestSpec.call()).thenReturn(callResponseSpec);
-        when(callResponseSpec.chatResponse()).thenReturn(chatResponse);
-        
-        when(chatResponse.getResult()).thenReturn(generation);
-        when(generation.getOutput()).thenReturn(new AssistantMessage(aiResponseJson));
-
-        // Mock token usage
-        ChatResponseMetadata metadata = mock(ChatResponseMetadata.class);
-        Usage usage = mock(Usage.class);
-        when(chatResponse.getMetadata()).thenReturn(metadata);
-        when(metadata.getUsage()).thenReturn(usage);
-        when(usage.getPromptTokens()).thenReturn(10);
-        when(usage.getCompletionTokens()).thenReturn(20);
-        when(usage.getTotalTokens()).thenReturn(30);
-
-        JsonNode rootNode = mock(JsonNode.class);
-        JsonNode postingsNode = mock(JsonNode.class);
-        when(objectMapper.readTree(aiResponseJson)).thenReturn(rootNode);
-        when(rootNode.get("jobPostings")).thenReturn(postingsNode);
-        when(postingsNode.isArray()).thenReturn(true);
-        when(postingsNode.iterator()).thenReturn(List.of(mock(JsonNode.class)).iterator());
-        when(objectMapper.convertValue(any(), eq(Map.class))).thenReturn(Map.of("title", "Java Developer", "company", "Test Corp"));
-
-        // When
         List<Map<String, String>> result = extractionEngine.extractJobPostings(rawText);
 
-        // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("Java Developer", result.get(0).get("title"));
-        verify(chatClient).prompt(any(org.springframework.ai.chat.prompt.Prompt.class));
+        assertEquals("Java Developer", result.get(0).get("position"));
+        assertEquals("Test Corp", result.get(0).get("companyName"));
+
+        ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient).send(requestCaptor.capture(), any(HttpResponse.BodyHandler.class));
+        HttpRequest request = requestCaptor.getValue();
+        assertEquals(URI.create("http://localhost/v1/chat/completions"), request.uri());
+        assertEquals("Bearer test-key", request.headers().firstValue("Authorization").orElseThrow());
     }
 
     @Test
-    void shouldReturnEmptyListWhenJsonIsInvalid() throws JsonProcessingException {
-        // Given
-        String aiResponseJson = "invalid json";
-        when(chatClient.prompt(any(org.springframework.ai.chat.prompt.Prompt.class))).thenReturn(requestSpec);
-        when(requestSpec.user(any(Consumer.class))).thenReturn(requestSpec);
-        when(requestSpec.call()).thenReturn(callResponseSpec);
-        when(callResponseSpec.chatResponse()).thenReturn(chatResponse);
-        when(chatResponse.getResult()).thenReturn(generation);
-        when(generation.getOutput()).thenReturn(new AssistantMessage(aiResponseJson));
+    void shouldReturnEmptyListWhenJsonIsInvalid() throws Exception {
+        givenAiResponse("invalid json");
 
-        when(objectMapper.readTree(aiResponseJson)).thenThrow(JsonProcessingException.class);
-
-        // When
         List<Map<String, String>> result = extractionEngine.extractJobPostings("raw text");
 
-        // Then
         assertTrue(result.isEmpty());
     }
 
     @Test
-    void shouldReturnEmptyListWhenJobPostingsFieldIsMissing() throws JsonProcessingException {
-        // Given
-        String aiResponseJson = "{\"other\": []}";
-        when(chatClient.prompt(any(org.springframework.ai.chat.prompt.Prompt.class))).thenReturn(requestSpec);
-        when(requestSpec.user(any(Consumer.class))).thenReturn(requestSpec);
-        when(requestSpec.call()).thenReturn(callResponseSpec);
-        when(callResponseSpec.chatResponse()).thenReturn(chatResponse);
-        when(chatResponse.getResult()).thenReturn(generation);
-        when(generation.getOutput()).thenReturn(new AssistantMessage(aiResponseJson));
+    void shouldReturnEmptyListWhenJobPostingsFieldIsMissing() throws Exception {
+        givenAiResponse("{\"other\":[]}");
 
-        JsonNode rootNode = mock(JsonNode.class);
-        when(objectMapper.readTree(aiResponseJson)).thenReturn(rootNode);
-        when(rootNode.get("jobPostings")).thenReturn(null);
-
-        // When
         List<Map<String, String>> result = extractionEngine.extractJobPostings("raw text");
 
-        // Then
         assertTrue(result.isEmpty());
+    }
+
+    private void givenAiResponse(String content) throws Exception {
+        String responseBody = objectMapper.writeValueAsString(Map.of(
+                "choices", List.of(Map.of("message", Map.of("content", content)))));
+        doReturn(200).when(response).statusCode();
+        doReturn(responseBody).when(response).body();
+        doReturn(response).when(httpClient).send(
+                any(HttpRequest.class),
+                any(HttpResponse.BodyHandler.class));
     }
 }
