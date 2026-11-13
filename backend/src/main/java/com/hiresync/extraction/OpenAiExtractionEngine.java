@@ -3,8 +3,8 @@ package com.hiresync.extraction;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -22,10 +22,22 @@ import java.util.Map;
 import java.util.HashMap;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class OpenAiExtractionEngine {
     private final ObjectMapper objectMapper;
+    private final HttpClient httpClient;
+
+    @Autowired
+    public OpenAiExtractionEngine(ObjectMapper objectMapper) {
+        this(objectMapper, HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .build());
+    }
+
+    OpenAiExtractionEngine(ObjectMapper objectMapper, HttpClient httpClient) {
+        this.objectMapper = objectMapper;
+        this.httpClient = httpClient;
+    }
 
     @Value("classpath:prompts/job-extraction.st")
     private Resource extractionPrompt;
@@ -66,10 +78,6 @@ public class OpenAiExtractionEngine {
             log.info("Sending raw HTTP request via java.net.http.HttpClient to: {}", baseUrl);
 
             // 3. 순수 java.net.http.HttpClient를 사용하여 curl과 동일한 최소 헤더 및 HTTP/1.1로 호출
-            HttpClient client = HttpClient.newBuilder()
-                    .version(HttpClient.Version.HTTP_1_1)
-                    .build();
-
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(baseUrl + "/v1/chat/completions"))
                     .header("Content-Type", "application/json")
@@ -77,7 +85,7 @@ public class OpenAiExtractionEngine {
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8))
                     .build();
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
             if (response.statusCode() != 200) {
                 log.error("LLM Server returned non-200 status: {}. Body: {}", response.statusCode(), response.body());

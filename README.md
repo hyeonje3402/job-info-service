@@ -54,4 +54,14 @@ npm start
 
 AI 분석을 사용하려면 OpenAI 호환 API 키를 환경 변수로 설정해야 합니다. 로컬 사용자 계정과 설정은 [개발 문서](docs/development/README.md)를 확인하세요.
 
+## 백엔드 테스트
+
+저장소 루트에서 JUnit/MockMvc 백엔드 테스트를 실행합니다.
+
+~~~bash
+./gradlew :backend:test
+~~~
+
+테스트 전용 설정과 모킹된 HTTP 클라이언트를 사용하므로 실제 AI API 키나 외부 AI 호출 없이 테스트할 수 있습니다. 브라우저 E2E와 프런트엔드 테스트 명령은 [개발 문서](docs/development/README.md)를 참고하세요.
+
 > 이 저장소는 개발 프로젝트입니다. 운영 배포 설정은 포함되어 있지 않습니다. 공개 저장소 README에는 테스트 계정 비밀번호나 API 키를 기록하지 마세요.
