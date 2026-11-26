@@ -19,3 +19,10 @@
 ### Changed
 - `.specify/memory/constitution.md`: 개발 워크플로우 및 거버넌스 섹션에 변경 이력 관리 원칙 추가.
 
+
+
+# Changelog
+
+## Unreleased
+
+- README의 백엔드 테스트 결과와 Gradle Wrapper JAR 누락에 따른 실행 제약을 명확히 했다. 기존 1.0.1·1.0.2 이력은 보존했으며, 새 버전이나 Release는 만들지 않았다.
