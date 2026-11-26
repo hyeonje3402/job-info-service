@@ -70,3 +70,12 @@ AI 분석을 사용하려면 OpenAI 호환 API 키를 환경 변수로 설정해
 ## 2026-11-26 검증 메모
 
 Java 21과 Gradle 8.4를 사용해 \`:backend:test\`가 통과했습니다. 다만 현재 저장소에는 Gradle Wrapper JAR가 없어 \`./gradlew\` 명령은 이 환경에서 실행되지 않았고, 성공 결과는 로컬 Gradle 실행에 한정됩니다. 프런트엔드 E2E, 운영 배포는 이번 점검에서 검증하지 않았습니다.
+
+## 실제 구현 화면
+
+Notion 포트폴리오에 기존 보존된 구현 화면입니다. 공고 PDF 업로드 흐름과 관리자 공고 상태 목록을 보여줍니다.
+
+| 화면 | 자료 |
+|---|---|
+| 채용공고 PDF 업로드 | ![채용 공고 데이터 소스 추가 모달](docs/screenshots/hiresync-job-posting-upload.png) |
+| 관리자 공고 목록 및 상태 | ![관리자 공고 상태 카드 목록](docs/screenshots/hiresync-admin-postings.png) |
